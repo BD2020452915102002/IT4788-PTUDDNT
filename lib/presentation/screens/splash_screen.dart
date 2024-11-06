@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:ptuddnt/core/constants/colors.dart';
@@ -24,9 +26,15 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 1), () {
       // Kiểm tra widget có còn tồn tại hay không
       if (!mounted) return;
-
+      prefs.remove('userData');
+      print(userData);
       if (userData != null) {
-        Navigator.pushReplacementNamed(context, '/home');
+        final role = jsonDecode(userData)['role'];
+        if(role == 'STUDENT'){
+          Navigator.pushReplacementNamed(context, '/home');
+        } else if(role == 'LECTURER'){
+          Navigator.pushReplacementNamed(context, '/homeLec');
+        }
       } else {
         Navigator.pushReplacementNamed(context, '/login');
       }

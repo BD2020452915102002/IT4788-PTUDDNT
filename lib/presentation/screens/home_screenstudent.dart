@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Home'),
       ),
       body: const Center(
-        child: Text('Đây là trang chủ'),
+        child: Text('Đây là trang chủ sinh vien'),
       ),
     );
   }
