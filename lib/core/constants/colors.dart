@@ -10,7 +10,7 @@ class AppColors {
   static const Color subColorSecondary = Color(0xFF77CDFF);
 
   static const Color textColor = Color(0xFF1E0000);
-  static const Color textColorBlur = Color(0xFF494343);
+  static const Color textColorBlur = Color(0xFF6A6363);
 
   static const Color buttonColor = Color(0xFFF34247);
 

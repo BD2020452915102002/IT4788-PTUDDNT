@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.only(left: 80),
+                    padding: EdgeInsets.only(left: 60),
                     child: Image(
                       image: AssetImage("assets/logo-hust.png"),
                       height: 180,
@@ -119,41 +119,45 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   TextField(
                     controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email), // Thêm biểu tượng email ở bên trái
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30.0), // Bo tròn khung
-                        borderSide: const BorderSide(
-                          color:Colors.white70, // Màu của đường viền
-                          width: 1.0,
-                        ),
+                    decoration: const InputDecoration(
+                      hintText: 'Nhập email',
+                      prefixIcon: Icon(
+                        Icons.email,
+                        color: Color(0xffd96060),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                        borderSide: const BorderSide(
-                          color: Colors.grey, // Màu đường viền khi được chọn
-                          width: 1.0,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15.0), // Đệm trong của TextField
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 15.0),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   TextField(
                     controller: _passwordController,
                     decoration: const InputDecoration(
-                      labelText: 'Mật khẩu',
+                      hintText: 'Nhập mật khẩu',
+                      prefixIcon: Icon(
+                        Icons.key,
+                        color: Color(0xffd96060),
+                      ),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 15.0),
                     ),
                     obscureText: true,
                   ),
-                  const SizedBox(height: 24),
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: _login,
-                          child: const Text('Đăng nhập'),
-                        ),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50, // Set a fixed height
+                    child: _isLoading
+                        ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                        : ElevatedButton(
+                      onPressed: _login,
+                      child: const Text('Đăng nhập'),
+                    ),
+                  ),
+
                   const SizedBox(height: 16),
                   if (_errorMessage.isNotEmpty)
                     Text(
@@ -169,7 +173,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.pushNamed(context,
                               '/register'); // Điều hướng tới màn hình đăng ký
                         },
-
                         child: const Text('Đăng ký'),
                       ),
                       TextButton(
