@@ -44,10 +44,13 @@ class AppTheme {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary
-        )
-      )
+          style: TextButton.styleFrom(foregroundColor: AppColors.primary)),
+      iconTheme: const IconThemeData(
+        color: Color(0xffd96060),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.all(AppColors.primary),
+      ),
     );
   }
 }

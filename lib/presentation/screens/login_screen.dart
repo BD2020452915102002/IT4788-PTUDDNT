@@ -137,10 +137,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return '          Vui lòng nhập email';
+                        return 'Vui lòng nhập email';
                       } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
                           .hasMatch(value)) {
-                        return '          Vui lòng nhập email lệ';
+                        return 'Vui lòng nhập email lệ';
                       }
                       return null;
                     },
@@ -159,9 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return '          Vui lòng nhập mật khẩu';
+                        return 'Vui lòng nhập mật khẩu';
                       } else if (value.length < 6) {
-                        return '          Mật khẩu phải có ít nhất 6 ký tự';
+                        return 'Mật khẩu phải có ít nhất 6 ký tự';
                       }
                       return null;
                     },
