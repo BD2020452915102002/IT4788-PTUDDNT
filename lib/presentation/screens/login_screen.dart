@@ -169,6 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.pushNamed(context,
                               '/register'); // Điều hướng tới màn hình đăng ký
                         },
+
                         child: const Text('Đăng ký'),
                       ),
                       TextButton(
