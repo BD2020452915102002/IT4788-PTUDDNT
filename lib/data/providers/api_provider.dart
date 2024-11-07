@@ -2,7 +2,7 @@
 // import 'dart:convert';
 //
 // import '../models/user.dart';
-// import '../../core/config/app_config.dart';
+// import '../../core/config/api_config.dart';
 //
 // class ApiProvider {
 //   Future<List<User>> fetchUsers() async {

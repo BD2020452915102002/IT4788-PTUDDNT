@@ -26,14 +26,13 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 1), () {
       // Kiểm tra widget có còn tồn tại hay không
       if (!mounted) return;
-      prefs.remove('userData');
-      print(userData);
+      // prefs.remove('userData');
       if (userData != null) {
         final role = jsonDecode(userData)['role'];
         if(role == 'STUDENT'){
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacementNamed(context, '/home-student');
         } else if(role == 'LECTURER'){
-          Navigator.pushReplacementNamed(context, '/homeLec');
+          Navigator.pushReplacementNamed(context, '/home-lecturer');
         }
       } else {
         Navigator.pushReplacementNamed(context, '/login');
