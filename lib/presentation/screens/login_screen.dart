@@ -12,12 +12,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
 
   Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -59,7 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
-          padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey, // Associate the form key with the Form widget
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -116,8 +123,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 40),
               Column(
+
                 children: [
-                  TextField(
+                  TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
                       hintText: 'Nhập email',
@@ -125,12 +133,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         Icons.email,
                         color: Color(0xffd96060),
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 15.0),
+                      contentPadding: EdgeInsets.symmetric(vertical: 15.0),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '          Vui lòng nhập email';
+                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                          .hasMatch(value)) {
+                        return '          Vui lòng nhập email lệ';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
-                  TextField(
+                  TextFormField(
                     controller: _passwordController,
                     decoration: const InputDecoration(
                       hintText: 'Nhập mật khẩu',
@@ -138,56 +154,59 @@ class _LoginScreenState extends State<LoginScreen> {
                         Icons.key,
                         color: Color(0xffd96060),
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 15.0),
+                      contentPadding: EdgeInsets.symmetric(vertical: 15.0),
                     ),
                     obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '          Vui lòng nhập mật khẩu';
+                      } else if (value.length < 6) {
+                        return '          Mật khẩu phải có ít nhất 6 ký tự';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
-
                   SizedBox(
                     width: double.infinity,
-                    height: 50, // Set a fixed height
+                    height: 50,
                     child: _isLoading
-                        ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
+                        ? const Center(child: CircularProgressIndicator())
                         : ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('Đăng nhập'),
-                    ),
+                            onPressed: _login,
+                            child: const Text('Đăng nhập'),
+                          ),
                   ),
-
                   const SizedBox(height: 16),
                   if (_errorMessage.isNotEmpty)
                     Text(
                       _errorMessage,
                       style: const TextStyle(color: Colors.red),
                     ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context,
-                              '/register'); // Điều hướng tới màn hình đăng ký
+                          Navigator.pushNamed(context, '/register');
                         },
                         child: const Text('Đăng ký'),
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context,
-                              '/forgot_password'); // Điều hướng tới màn hình quên mật khẩu
+                          Navigator.pushNamed(context, '/forgot_password');
                         },
                         child: const Text('Quên mật khẩu?'),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ],
-          )),
+          ),
+        ),
+      ),
     );
   }
 }
