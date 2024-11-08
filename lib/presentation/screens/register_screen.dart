@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
+import '../../core/utils/notification.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,9 +16,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  String dropdownValue = 'STUDENT';
-  bool _isLoading = false;
-  String _errorMessage = '';
+  String roleValue = 'STUDENT';
+  final bool _isLoading = false;
+  final String _errorMessage = '';
 
   static const List<Map<String, String>> roles = <Map<String, String>>[
     {'value': 'STUDENT', 'label': 'Học sinh'},
@@ -25,22 +26,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
   ];
 
   Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = '';
-      });
+    // if (_formKey.currentState!.validate()) {
+    //   setState(() {
+    //     _isLoading = true;
+    //     _errorMessage = '';
+    //   });
+    //
+    //
+    //   // final response = await ApiAuthen().post('/signup', {
+    //   //     "ho": _hoController.text,
+    //   //     "ten": _tenController.text,
+    //   //     "email": _emailController.text,
+    //   //     "password": _passwordController.text,
+    //   //     "role": roleValue
+    //   // });
+    //
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
 
-      // Simulating API request and response
-      await Future.delayed(
-          const Duration(seconds: 2)); // Simulate network delay
+      // if (response.statusCode == 200) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/login');
+        NotificationService().showAlertDialog(context, "Chúc mừng", "Bạn đã đăng ký thành công");
+      // } else {
+      //   setState(() {
+      //     _errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+      //   });
+      // }
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Handle API response here
-    }
+    // }
   }
 
   @override
@@ -139,8 +154,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập email';
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                        return 'Vui lòng nhập email hợp lệ';
+                      } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@(hust\.edu\.vn|soict\.hust\.edu\.vn)$').hasMatch(value)) {
+                        return 'Email không hợp lệ. Chỉ chấp nhận hust.edu.vn hoặc soict.hust.edu.vn';
                       }
                       return null;
                     },
@@ -197,10 +212,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               children: [
                                 Radio<String>(
                                   value: role['value']!,
-                                  groupValue: dropdownValue,
+                                  groupValue: roleValue,
                                   onChanged: (String? value) {
                                     setState(() {
-                                      dropdownValue = value!;
+                                      roleValue = value!;
                                     });
                                   },
                                 ),

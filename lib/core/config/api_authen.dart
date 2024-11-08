@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ptuddnt/core/config/api_config.dart';
 
-class ApiService {
+class ApiAuthen {
   static const String baseUrl = ApiConfig.apiAuthen;
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() {
+  static final ApiAuthen _instance = ApiAuthen._internal();
+  factory ApiAuthen() {
     return _instance;
   }
 
-  ApiService._internal();
+  ApiAuthen._internal();
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final url = Uri.parse('$baseUrl$endpoint');

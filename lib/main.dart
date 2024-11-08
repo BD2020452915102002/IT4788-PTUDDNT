@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ptuddnt/presentation/themes/app_theme.dart';
 import 'package:ptuddnt/routes/app_routes.dart';
 
+import 'core/utils/notification.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -15,6 +17,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Hust App',
       theme: AppTheme.lightTheme,
+      scaffoldMessengerKey: NotificationService().messengerKey,
       initialRoute: '/',
       routes: AppRoutes.routes,
     );
