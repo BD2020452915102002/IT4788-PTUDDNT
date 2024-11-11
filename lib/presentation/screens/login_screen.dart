@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/utils/token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/api_authen.dart';
 import '../../core/constants/colors.dart';
@@ -46,6 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('userData', jsonEncode(userData));
 
       String? role = jsonDecode(prefs.getString('userData')!)['role'];
+      String? token = jsonDecode(prefs.getString('userData')!)['token'];
+
+      Token().save(token!);
 
       if (!mounted) return;
       if (role == 'STUDENT') {
