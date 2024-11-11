@@ -40,13 +40,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      final userData = data['data'];
 
-      // Lưu thông tin người dùng vào SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userData', jsonEncode(data));
-      if (!mounted) return;
+      await prefs.setString('userData', jsonEncode(userData));
+
       String? role = jsonDecode(prefs.getString('userData')!)['role'];
-      // Điều hướng tới trang Home nếu đăng nhập thành công
+
+      if (!mounted) return;
       if (role == 'STUDENT') {
         Navigator.pushReplacementNamed(context, '/home-student');
       } else if (role == 'LECTURER') {
