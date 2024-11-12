@@ -12,7 +12,7 @@ class HomeScreenLec extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreenLec> {
   final GlobalKey<ScaffoldState> _scaffoldKey =
-      GlobalKey<ScaffoldState>(); // Khai báo key
+      GlobalKey<ScaffoldState>();
   List<dynamic> _classList = [];
   final ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
   List<dynamic> _classListShow = [];
@@ -213,7 +213,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
             onTap: () {
               Navigator.pushNamed(
                 context,
-                '/class-detail',
+                '/class-detail-lecture',
                 arguments: classData,
               );
             },

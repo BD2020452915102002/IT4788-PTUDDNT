@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 
-class DetailClassScreen extends StatelessWidget {
+class DetailClassScreenStudent extends StatelessWidget {
   final Map<String, dynamic> classData;
 
-  const DetailClassScreen({super.key, required this.classData});
+  const DetailClassScreenStudent({super.key, required this.classData});
 
   Widget _getButtonContent(int index) {
     List<Map<String, dynamic>> buttonData = [
       {
-        'icon': Icons.people,
-        'text': 'Danh sách sinh viên',
+        'icon': Icons.class_,
+        'text': 'Thông tin lớp học',
       },
       {
         'icon': Icons.share,
-        'text': 'Tài liệu chia sẻ',
+        'text': 'Xem tài liệu môn học',
       },
       {
         'icon': Icons.grade,
-        'text': 'Nhập điểm',
+        'text': 'Danh sách bài tập/ kiểm tra',
       },
       {
         'icon': Icons.check_circle,
         'text': 'Điểm danh',
       },
       {
-        'icon': Icons.assignment,
-        'text': 'Tạo bài tập / khảo sát',
+        'icon': Icons.add_chart_sharp,
+        'text': 'Xin phép nghỉ học',
       },
     ];
 
