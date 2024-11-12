@@ -1,12 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/presentation/screens/lecturer/class/assignment.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class DetailClassScreenLec extends StatelessWidget {
-  final Map<String, dynamic> classData;
+Future<String?> getToken() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('token');
+}
 
-  const DetailClassScreenLec({super.key, required this.classData});
 
-  Widget _getButtonContent(int index) {
+
+class DetailClassScreenLec extends StatefulWidget {
+    final Map<String, dynamic> classData;
+    const DetailClassScreenLec({Key? key, required this.classData}) : super(key: key);
+
+    @override
+    _DetailClassScreenLecState createState() => _DetailClassScreenLecState();
+}
+class _DetailClassScreenLecState extends State<DetailClassScreenLec> {
+    late String token = '';
+    late final dynamic classId;
+
+    @override
+    void initState() {
+      super.initState();
+      classId = widget.classData['class_id'] ?? 'Unknown';
+
+      _loadToken();
+    }
+    Future<void> _loadToken() async {
+      String? fetchedToken = await getToken();
+      setState(() {
+        token = fetchedToken ?? 'Token not found';
+      });
+      print("Class ID: ${classId}");
+      print("Token: $token");
+    }
+
+    Widget _getButtonContent(int index) {
     List<Map<String, dynamic>> buttonData = [
       {
         'icon': Icons.people,
@@ -67,6 +98,12 @@ class DetailClassScreenLec extends StatelessWidget {
         break;
       case 4:
         print("Tạo bài tập / khảo sát pressed");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AssignmentPage(token: token, classId: classId),
+          ),
+        );
         break;
     }
   }
@@ -86,7 +123,7 @@ class DetailClassScreenLec extends StatelessWidget {
         ),
         centerTitle: true,
         title: Text(
-          classData['class_name'],
+          widget.classData['class_name'],
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: AppColors.primary,
