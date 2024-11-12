@@ -14,13 +14,13 @@ class _HomeScreenState extends State<HomeScreenLec> {
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); // Khai báo key
   List<dynamic> _classList = [];
-  ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
+  final ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
   List<dynamic> _classListShow = [];
   bool _isLoading = true;
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
-  late String avata ;
+  late String avata;
 
   @override
   void initState() {
@@ -58,14 +58,14 @@ class _HomeScreenState extends State<HomeScreenLec> {
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
-        String user_name = userData['user_name'] ?? '';
+        String userNamekkk = userData['user_name'] ?? '';
 
         setState(() {
           _classList = classList;
           _isLoading = false;
           hoTen = '$ho $ten';
           avata = avatarURL;
-          userName = user_name;
+          userName = userNamekkk;
         });
         _updateVisibleClasses();
       } else {
@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
             builder: (BuildContext context, StateSetter setState) {
               return SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
-                child: ListView.builder(
+                child: _classList.isNotEmpty ? ListView.builder(
                   shrinkWrap: true,
                   itemCount: _classList.length,
                   itemBuilder: (context, index) {
@@ -115,11 +115,10 @@ class _HomeScreenState extends State<HomeScreenLec> {
                                   ..add(classData);
                           }
                         });
-                        _classListHidden.notifyListeners();
                       },
                     );
                   },
-                ),
+                ): const Text('Oh no!')
               );
             },
           ),
@@ -177,7 +176,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey, // Thêm key vào Scaffold
+      key: _scaffoldKey,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
@@ -199,10 +198,6 @@ class _HomeScreenState extends State<HomeScreenLec> {
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onPressed: _showMoreOptions,
           ),
-          IconButton(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout, color: Colors.white),
-          ),
         ],
         backgroundColor: AppColors.primary,
       ),
@@ -211,63 +206,71 @@ class _HomeScreenState extends State<HomeScreenLec> {
           : _errorMessage.isNotEmpty
               ? Center(child: Text(_errorMessage))
               : ListView.builder(
-                  itemCount: _classListShow.length,
-                  itemBuilder: (context, index) {
-                    final classData = _classListShow[index];
-                    return Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+        itemCount: _classListShow.length,
+        itemBuilder: (context, index) {
+          final classData = _classListShow[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/class-detail',
+                arguments: classData,
+              );
+            },
+            child: Card(
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      classData['class_name'],
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              classData['class_name'],
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Loại lớp: ${classData['class_type']}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Giảng viên: ${classData['lecturer_name']}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Loại lớp: ${classData['class_type']}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Giảng viên: ${classData['lecturer_name']}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            ),
+          );
+        },
+      ),
       drawer: Drawer(
         child: ListView(
           padding: const EdgeInsets.all(0),
           children: [
-             DrawerHeader(
+            DrawerHeader(
               decoration: const BoxDecoration(
                 color: AppColors.primary,
               ),
@@ -275,20 +278,36 @@ class _HomeScreenState extends State<HomeScreenLec> {
                 decoration: const BoxDecoration(
                   color: AppColors.primary,
                 ),
-                accountName: Text(hoTen ),
-                accountEmail: Text(userName),
-                currentAccountPicture: const CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.green,
-                  ),
+                accountEmail: const Text(''),
+                // keep blank text because email is required
+                accountName: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
+                      child: const CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                     Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(hoTen, style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold
+                        ),),
+                        Text(userName),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-            ListTile(
-              title: const Text('Trang chủ'),
-              onTap: () {},
             ),
             ListTile(
               title: const Text('Thông tin cá nhân'),
