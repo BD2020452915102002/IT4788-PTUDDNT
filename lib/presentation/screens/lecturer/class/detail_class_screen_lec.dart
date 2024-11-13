@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
-import 'package:ptuddnt/presentation/screens/lecturer/class/assignment.dart';
+import 'package:ptuddnt/presentation/screens/lecturer/class/assignment/assignment.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'matetial/mater.dart';
 
 Future<String?> getToken() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -89,6 +91,12 @@ class _DetailClassScreenLecState extends State<DetailClassScreenLec> {
         break;
       case 1:
         print("Tài liệu chia sẻ pressed");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MaterialScreen(token: token, classId: classId),
+          ),
+        );
         break;
       case 2:
         print("Nhập điểm pressed");

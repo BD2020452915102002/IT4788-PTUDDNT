@@ -5,9 +5,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../../core/constants/colors.dart';
+
 class CreateSurveyScreen extends StatefulWidget {
   final String token;
-  final int classId;
+  final dynamic classId;
   const CreateSurveyScreen({Key? key, required this.token, required this.classId}) : super(key: key);
   @override
   _CreateSurveyScreenState createState() => _CreateSurveyScreenState();
@@ -20,7 +22,9 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
   String? token;
   String? classId;
   File? selectedFile;
-  String formatClassId(int classId) {
+  String? selectedFileName;
+  DateTime? selectedDeadline;
+  String formatClassId(String classId) {
     return classId.toString().padLeft(6, '0'); // Ensure classId has at least 6 characters
   }
   @override
@@ -43,7 +47,7 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
 
 
       print('Token from SharedPreferences: $token');
-      print('Class ID from: $classId');
+      print('Class ID from: ${classId.runtimeType}');
     } else {
       print("No user data found in SharedPreferences");
     }
@@ -55,6 +59,7 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
     if (result != null) {
       setState(() {
         selectedFile = File(result.files.single.path!);
+        selectedFileName = result.files.single.name;
         print("File selected: ${selectedFile!.path}");
       });
     }
@@ -96,11 +101,63 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
       print("Response body: $responseString");
     }
   }
+  Future<void> _selectDateTime(BuildContext context) async {
+    // Chọn ngày
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      // Chọn giờ
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        final DateTime fullDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        // Định dạng ngày giờ thành `YYYY-MM-DDTHH:MM:SS`
+        final String formattedDateTime =
+            "${fullDateTime.toIso8601String().split('.')[0]}";
+
+        // Cập nhật trường Deadline
+        setState(() {
+          deadlineController.text = formattedDateTime;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Create Survey")),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_sharp,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        centerTitle: true,
+        title: Text(
+          "Tạo bài tập",
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.primary,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
@@ -109,21 +166,49 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
               controller: titleController,
               decoration: InputDecoration(labelText: 'Title'),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: deadlineController,
+              readOnly: true,
+              onTap: () => _selectDateTime(context),
               decoration: InputDecoration(labelText: 'Deadline (YYYY-MM-DDTHH:MM:SS)'),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: descriptionController,
               decoration: InputDecoration(labelText: 'Description'),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFC02135),
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 5,
+              ),
               onPressed: pickFile,
               child: Text(selectedFile != null ? "File Selected" : "Pick File"),
             ),
+            if (selectedFileName != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'File đã chọn: $selectedFileName',
+                  style: TextStyle(fontSize: 16, color: Colors.blue),
+                ),
+              ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFC02135),
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 5,
+              ),
               onPressed: createSurvey,
               child: Text("Create Survey"),
             ),
