@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
-        String userNamekkk = userData['user_name'] ?? '';
+        String userNamekkk = userData['name'] ?? '';
 
         setState(() {
           _classList = classList;
