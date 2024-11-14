@@ -39,9 +39,12 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: 2, vsync: this);
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+
     getToken().then((_) {
-      _classId = "001511"; // Static class ID for now
+      _classId = args['classId'];
       _date = formatDate(DateTime.now());
       _dateController.text = _date;
 
