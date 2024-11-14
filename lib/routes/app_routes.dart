@@ -6,6 +6,7 @@ import 'package:ptuddnt/presentation/screens/student/home_screen_student.dart';
 import 'package:ptuddnt/presentation/screens/splash_screen.dart';
 import 'package:ptuddnt/presentation/screens/login_screen.dart';
 import 'package:ptuddnt/presentation/screens/register_screen.dart';
+import '../presentation/screens/lecturer/class/assignment/assignment.dart';
 import '../presentation/screens/lecturer/home_screen_lecture.dart';
 
 class AppRoutes {
@@ -25,5 +26,8 @@ class AppRoutes {
     },
     '/register': (context) => const RegisterScreen(),
     '/forgot-password': (context) => const ForgotPasswordScreen(),
+
+
+
   };
 }

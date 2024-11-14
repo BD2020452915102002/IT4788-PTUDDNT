@@ -210,12 +210,21 @@ class _HomeScreenState extends State<HomeScreenLec> {
         itemBuilder: (context, index) {
           final classData = _classListShow[index];
           return GestureDetector(
-            onTap: () {
+            onTap: () async {
+              // final prefs = await SharedPreferences.getInstance();
+              // String? token = prefs.getString('token');
+              print("classData: $classData");
+              String attached_code = classData['attached_code'] ?? '';
               Navigator.pushNamed(
                 context,
                 '/class-detail-lecture',
-                arguments: classData,
+                arguments:   classData, // Bao gồm id của lớp học
+                  // 'token': token,         // Truyền token
+
               );
+              print ("classData: $classData");
+              // print("token: $token");
+
             },
             child: Card(
               elevation: 4,
