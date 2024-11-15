@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/presentation/screens/forgot_password_screen.dart';
 import 'package:ptuddnt/presentation/screens/lecturer/class/detail_class_screen_lec.dart';
+import 'package:ptuddnt/presentation/screens/student/class/detail_assignment_screen.dart';
 import 'package:ptuddnt/presentation/screens/student/class/detail_class_screen_student.dart';
 import 'package:ptuddnt/presentation/screens/student/home_screen_student.dart';
 import 'package:ptuddnt/presentation/screens/splash_screen.dart';
@@ -33,9 +34,12 @@ class AppRoutes {
       final classData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return ListAssignment(classData: classData);
     },
+    '/detail-assignment-student': (context) {
+          final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return AssignmentDetailScreen(assignment: assignment);
+        },
 
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
-
     '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(),
 
 

@@ -74,11 +74,13 @@ class _ListAssignmentState extends State<ListAssignment>
 
   @override
   Widget build(BuildContext context) {
+    String className = widget.classData['class_name'];
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 60,
         centerTitle: true,
         backgroundColor: AppColors.primary,
-        leading: IconButton(
+        leading:IconButton(
           icon: const Icon(
             Icons.arrow_back_sharp,
             color: Colors.white,
@@ -87,10 +89,14 @@ class _ListAssignmentState extends State<ListAssignment>
             Navigator.pop(context);
           },
         ),
-        title: const Text("Danh sách bài tập", style: TextStyle(
-            color: Colors.white
-        ),),
+        title: const Text(
+          "Danh sách bài tập",
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
       ),
+
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -156,58 +162,66 @@ class _ListAssignmentState extends State<ListAssignment>
       itemCount: assignments.length,
       itemBuilder: (context, index) {
         final assignment = assignments[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white, // Màu nền của khối
-              borderRadius: BorderRadius.circular(8), // Bo tròn góc
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.3), // Màu đổ bóng
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3), // Vị trí đổ bóng
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0), // Khoảng cách bên trong khối
-              child: ListTile(
-                title: Text(
-                  assignment['title'] ?? '',
-                  style: const TextStyle(
-                    color: Colors.black, // Màu sắc cho tiêu đề
-                    fontWeight: FontWeight.bold,
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              '/detail-assignment-student',
+              arguments: assignment,
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
                   ),
-                ),
-                subtitle: Text(
-                  assignment['description'] ?? '',
-                  style: const TextStyle(color: Colors.grey), // Màu sắc cho mô tả
-                ),
-                trailing: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      assignment['deadline'] != null
-                          ? formatDeadline(assignment['deadline'])
-                          : '',
-                      style: const TextStyle(
-                        color: Colors.redAccent, // Màu sắc cho deadline
-                        fontWeight: FontWeight.w500,
-                      ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListTile(
+                  title: Text(
+                    assignment['title'] ?? '',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
-                    if (assignment['deadline'] != null)
+                  ),
+                  subtitle: Text(
+                    assignment['description'] ?? '',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
                       Text(
-                        _getTimeRemaining(assignment['deadline']),
+                        assignment['deadline'] != null
+                            ? formatDeadline(assignment['deadline'])
+                            : '',
                         style: const TextStyle(
-                          color: Colors.orange, // Màu sắc cho thời gian còn lại
-                          fontWeight: FontWeight.bold,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                  ],
+                      if (assignment['deadline'] != null)
+                        Text(
+                          _getTimeRemaining(assignment['deadline']),
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-
               ),
             ),
           ),
@@ -215,5 +229,6 @@ class _ListAssignmentState extends State<ListAssignment>
       },
     );
   }
+
 
 }
