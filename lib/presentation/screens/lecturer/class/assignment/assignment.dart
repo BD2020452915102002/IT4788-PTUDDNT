@@ -409,7 +409,7 @@ class __AssignmentPageState extends State<AssignmentPage> {
                 }
               },
               child: Text('Lưu'),
-              style: TextButton.styleFrom(foregroundColor: Colors.blue),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ],
         );
