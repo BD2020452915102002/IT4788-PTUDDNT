@@ -30,27 +30,35 @@ class AssignmentDetailScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Center(
-         child: Column(
-           children: [
-             Text(
-               assignment['title'],
-               style: const TextStyle(
-                 fontSize: 20,
-                 fontWeight: FontWeight.bold,
-               ),
-             ),
-             const SizedBox(height: 6),
-             if (assignment['deadline'] != null)
-               Text(
-                 "Hạn chót: ${formatDeadline(assignment['deadline'])}",
-                 style: const TextStyle(fontSize: 12, color: Colors.grey , fontWeight: FontWeight.w600),
-               ),
-             const SizedBox(height: 16),
-
-           ],
-         )
-        ),
+        child: Column(
+          children: [
+             Column(
+               mainAxisAlignment: MainAxisAlignment.center,
+               crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      assignment['title'],
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    if (assignment['deadline'] != null)
+                      Text(
+                        "Hạn chót: ${formatDeadline(assignment['deadline'])}",
+                        style: const TextStyle(fontSize: 12, color: Colors.grey , fontWeight: FontWeight.w600),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+            Column(
+              children: [
+                Text('Mô tả')
+              ],
+            )
+          ],
+        )
       ),
     );
   }
