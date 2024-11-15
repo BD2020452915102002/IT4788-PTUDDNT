@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/colors.dart';
 import '../../../../../data/models/material.dart';
+import 'create_material.dart';
+import 'edit_material.dart';
 
 class MaterialScreen extends StatefulWidget {
   final String token;
@@ -19,6 +21,7 @@ const MaterialScreen({Key? key, required this.token, required this.classId}) : s
 
 class _MaterialScreenState extends State<MaterialScreen>{
   bool isLoading = true;
+  bool isReloading = false;
   List<MaterialClass> materials = [];
 
   @override
@@ -110,6 +113,33 @@ class _MaterialScreenState extends State<MaterialScreen>{
       );
     }
   }
+  Future<void> _deleteMaterial(String id) async {
+    print('Xóa Material: $id');
+    print('Token: $widget.token');
+    try {
+      var response = await http.post(
+        Uri.parse('http://160.30.168.228:8080/it5023e/delete_material'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          "token": widget.token,  // Thay bằng token thực tế
+          "material_id": id,
+        }),
+      );
+      if (response.statusCode == 200) {
+        print('Xóa material thành công');
+        setState(() {
+          // Xóa bài viết khỏi danh sách của bạn
+          loadMater();
+        });
+      } else {
+        print('Lỗi xóa material: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi khi xóa materal  : $e');
+    }
+  }
 
 
   @override
@@ -166,9 +196,25 @@ class _MaterialScreenState extends State<MaterialScreen>{
               right: 20.0,
               child: FloatingActionButton(
                 onPressed: () async {
-                  // Thêm code để mở màn hình thêm material
+                  print('Token press: ${widget.token}');
+                  print('Class ID press create: ${widget.classId}');
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CreateMaterialScreen(
+                      token: widget.token,
+                      classId: widget.classId,
+                    )),
+                  );
+                  if (result == true) {
+                    setState(() {
+                      isReloading = true; // Set trạng thái reload
+                      loadMater();
+                    });
+                  }
                 },
                 child: Icon(Icons.add),
+                backgroundColor: Color(0xFFC02135),
+                foregroundColor: Color(0xFFF2C209),
               ),
             ),
           ],
@@ -177,19 +223,35 @@ class _MaterialScreenState extends State<MaterialScreen>{
     );
   }
   void _showMaterialDetailsDialog(BuildContext context, String materialId, String token ) async {
-    // Giả sử đây là hàm để lấy dữ liệu chi tiết của material bằng materialId
     final materialDetails = await fetchMaterialDetails(materialId, token);
     print('Material details: $materialDetails');
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(materialDetails.title),
+          title: Container(
+            padding: EdgeInsets.all(10),
+            color: Color(0xFFC02135), // Đặt màu nền đỏ//
+            child: Center(
+              child: Text(
+                materialDetails.title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Description: ${materialDetails.description}"),
+              const SizedBox(height: 10),
               Text("Type: ${materialDetails.materialType}"),
+              const SizedBox(height: 10),
               GestureDetector(
                 onTap: () {
                   if (materialDetails.materialLink.isNotEmpty) {
@@ -211,8 +273,41 @@ class _MaterialScreenState extends State<MaterialScreen>{
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("Close"),
+              child: Text("Đóng"),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
+            TextButton(
+              onPressed: () {
+                // Call API to delete assignment
+                _deleteMaterial(materialId.toString());
+                Navigator.pop(context);
+              },
+              child: Text('Xóa'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+            ),
+            TextButton(
+              onPressed: () {
+                print("id preesss: ${materialId.runtimeType}");
+                final result =  Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EditMaterialScreen(
+                    token: widget.token,
+                    materialId: materialId,
+                  )),
+                );
+                if (result == true) {
+                  setState(() {
+                    isReloading = true; // Set trạng thái reload
+                    loadMater();
+                  });
+                }
+
+
+              },
+              child: Text('Edit'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+            ),
+
           ],
         );
       },
