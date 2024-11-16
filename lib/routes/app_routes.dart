@@ -7,11 +7,13 @@ import 'package:ptuddnt/presentation/screens/student/home_screen_student.dart';
 import 'package:ptuddnt/presentation/screens/splash_screen.dart';
 import 'package:ptuddnt/presentation/screens/login_screen.dart';
 import 'package:ptuddnt/presentation/screens/register_screen.dart';
+import 'package:ptuddnt/presentation/screens/student/absence_request/request_absence_student.dart';
 // import '../presentation/screens/lecturer/class/assignment/assignment.dart';
 import '../presentation/screens/lecturer/home_screen_lecture.dart';
 import '../presentation/screens/student/class/list_assignment.dart';
 import '../presentation/screens/lecturer/register_class_screen.dart';
 import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
+
 
 class AppRoutes {
   static final Map<String, WidgetBuilder> routes = {
@@ -38,10 +40,12 @@ class AppRoutes {
           final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return AssignmentDetailScreen(assignment: assignment);
         },
-
+    '/request-absence': (context) {
+      final classData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      return LeaveRequestScreen(classData: classData);
+    },
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
     '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(),
-
 
   };
 }

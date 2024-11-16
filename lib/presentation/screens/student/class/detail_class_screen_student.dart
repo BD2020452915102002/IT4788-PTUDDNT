@@ -46,7 +46,7 @@ class DetailClassScreenStudent extends StatelessWidget {
             _ViewMaterialsButton(classData: classData),
             _AssignmentsButton(classData: classData),
             _AttendanceButton(),
-            _RequestLeaveButton(),
+            _RequestLeaveButton(classData: classData),
           ],
         ),
       ),
@@ -148,11 +148,19 @@ class _AttendanceButton extends StatelessWidget {
 }
 
 class _RequestLeaveButton extends StatelessWidget {
+  final Map<String, dynamic> classData;
+
+  const _RequestLeaveButton({required this.classData});
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        // Logic khi nhấn vào "Xin phép nghỉ học"
+        Navigator.pushNamed(
+          context,
+          '/request-absence',
+          arguments: classData,
+        );
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.add_chart_sharp, 'Xin phép nghỉ học'),
