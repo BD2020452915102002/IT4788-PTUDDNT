@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/utils/token.dart';
+import 'about_material/list_material.dart';
+
+Future<String?> getToken() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('token');
+}
 
 class DetailClassScreenStudent extends StatelessWidget {
   final Map<String, dynamic> classData;
-
   const DetailClassScreenStudent({super.key, required this.classData});
+
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +43,7 @@ class DetailClassScreenStudent extends StatelessWidget {
           childAspectRatio: 1.5,
           children: [
             _ClassInfoButton(),
-            _ViewMaterialsButton(),
+            _ViewMaterialsButton(classData: classData),
             _AssignmentsButton(classData: classData),
             _AttendanceButton(),
             _RequestLeaveButton(),
@@ -59,12 +67,45 @@ class _ClassInfoButton extends StatelessWidget {
   }
 }
 
-class _ViewMaterialsButton extends StatelessWidget {
+class _ViewMaterialsButton extends StatefulWidget {
+
+  final Map<String, dynamic> classData;
+  _ViewMaterialsButton({required this.classData});
+
+  @override
+  _ViewMaterialsButtonState createState() => _ViewMaterialsButtonState();
+}
+class _ViewMaterialsButtonState extends State<_ViewMaterialsButton> {
+   late final dynamic classId;
+  String token = '';
+  @override
+  void initState() {
+    super.initState();
+    classId = widget.classData['class_id'];
+    _loadToken();
+  }
+  Future<void> _loadToken() async {
+    String? fetchedToken = await getToken();
+    setState(() {
+      token = fetchedToken ?? 'Token not found';
+    });
+    print("Class ID: ${classId}");
+    print("Token: $token");
+  }
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         // Logic khi nhấn vào "Xem tài liệu môn học"
+        print("classId: $classId");
+        print('token: $token');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ListMaterialScreen(token: token, classId: classId),
+          ),
+        );
+
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.share, 'Xem tài liệu môn học'),
