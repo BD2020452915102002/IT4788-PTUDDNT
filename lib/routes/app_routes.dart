@@ -12,6 +12,7 @@ import '../presentation/screens/lecturer/home_screen_lecture.dart';
 import '../presentation/screens/student/class/list_assignment.dart';
 import '../presentation/screens/lecturer/register_class_screen.dart';
 import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
+import 'package:ptuddnt/presentation/screens/student/class/absent_record_screen.dart';
 
 class AppRoutes {
   static final Map<String, WidgetBuilder> routes = {
@@ -38,6 +39,7 @@ class AppRoutes {
           final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return AssignmentDetailScreen(assignment: assignment);
         },
+    '/absent-record-student': (context) => const AttendanceRecordScreen(),
 
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
     '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(),
