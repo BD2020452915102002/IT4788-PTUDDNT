@@ -287,22 +287,45 @@ class _MaterialScreenState extends State<MaterialScreen>{
             ),
             TextButton(
               onPressed: () {
-                print("id preesss: ${materialId.runtimeType}");
-                final result =  Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EditMaterialScreen(
-                    token: widget.token,
-                    materialId: materialId,
-                  )),
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Xác nhận'),
+                      content: Text('Bạn phải cập nhật lại file nếu muốn sửa.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Đóng dialog
+                          },
+                          child: Text('Hủy'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Đóng dialog trước khi chuyển trang
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditMaterialScreen(
+                                  token: widget.token,
+                                  materialId: materialId,
+                                ),
+                              ),
+                            ).then((result) {
+                              if (result == true) {
+                                setState(() {
+                                  isReloading = true; // Set trạng thái reload
+                                  loadMater();
+                                });
+                              }
+                            });
+                          },
+                          child: Text('Đồng ý'),
+                        ),
+                      ],
+                    );
+                  },
                 );
-                if (result == true) {
-                  setState(() {
-                    isReloading = true; // Set trạng thái reload
-                    loadMater();
-                  });
-                }
-
-
               },
               child: Text('Edit'),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
