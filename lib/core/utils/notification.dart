@@ -13,7 +13,6 @@ class NotificationService {
 
   final GlobalKey<ScaffoldMessengerState> messengerKey = GlobalKey<ScaffoldMessengerState>();
 
-  // Phương thức hiển thị SnackBar với khả năng tùy chỉnh style
   void showSnackBar(String message, {Color backgroundColor = Colors.blue, TextStyle? textStyle}) {
     final snackBar = SnackBar(
       content: Text(
@@ -26,7 +25,6 @@ class NotificationService {
     messengerKey.currentState?.showSnackBar(snackBar);
   }
 
-  // Phương thức hiển thị AlertDialog với khả năng tùy chỉnh title và style
   void showAlertDialog(
       BuildContext context,
       String title,

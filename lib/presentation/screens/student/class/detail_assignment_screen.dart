@@ -47,18 +47,15 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
   Future<void> _submitAssignment() async {
     if (selectedFile != null && textResponse != null) {
-      final api = ApiClass();
-      final token = await Token().get();
-      print('token ${token}${textResponse}');
-      final assignmentID = widget.assignment['id'];
+      final token = await Token().get() as String;
+      final assignmentID = widget.assignment['id'].toString();
 
       var request = http.MultipartRequest(
         'POST',
         Uri.parse("http://160.30.168.228:8080/it5023e/submit_survey?file"),
       );
-
-      request.fields['token'] = token!;
-      request.fields['assignmentId'] = assignmentID!;
+      request.fields['token'] = token;
+      request.fields['assignmentId'] = assignmentID;
       request.fields['textResponse'] = textResponse ?? '';
       request.files.add(
         await http.MultipartFile.fromPath(

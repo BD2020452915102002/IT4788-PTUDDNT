@@ -1,18 +1,16 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:ptuddnt/core/utils/hive.dart';
 import '../../../../../core/constants/colors.dart';
 
 class CreateSurveyScreen extends StatefulWidget {
   final String token;
   final dynamic classId;
-  const CreateSurveyScreen({Key? key, required this.token, required this.classId}) : super(key: key);
+  const CreateSurveyScreen({super.key, required this.token, required this.classId});
   @override
-  _CreateSurveyScreenState createState() => _CreateSurveyScreenState();
+  State<CreateSurveyScreen> createState() => _CreateSurveyScreenState();
 }
 
 class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
@@ -35,16 +33,12 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
   }
 
   Future<void> loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userDataString = prefs.getString('userData');
-
-    if (userDataString != null) {
-      final userData = jsonDecode(userDataString);
+    final userData = HiveService().getData('userData');
+    if (userData != null) {
       setState(() {
         token = userData['token'];
 
       });
-
 
       print('Token from SharedPreferences: $token');
       print('Class ID from: ${classId.runtimeType}');

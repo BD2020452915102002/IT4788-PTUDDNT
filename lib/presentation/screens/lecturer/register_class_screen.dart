@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/config/api_class.dart';
 import '../../../core/constants/colors.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/utils/token.dart';
 
 class RegisterClassLecturer extends StatefulWidget {

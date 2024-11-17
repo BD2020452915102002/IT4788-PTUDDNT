@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import '../../../../../core/constants/colors.dart';
 import '../../../../../data/models/assign.dart';
 import 'creat_assignment.dart';
@@ -16,7 +13,7 @@ class AssignmentPage extends StatefulWidget {
   final String token;
   final dynamic classId;
 
-  const AssignmentPage({Key? key, required this.token, required this.classId}) : super(key: key);
+  const AssignmentPage({super.key, required this.token, required this.classId});
 
   @override
   State<AssignmentPage> createState() => __AssignmentPageState();
@@ -70,17 +67,12 @@ class __AssignmentPageState extends State<AssignmentPage> {
     }
   }
   Future<void> loadUserDataAndFetchAssign() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userDataString = prefs.getString('userData');
-
-    if (userDataString != null) {
-      final userData = jsonDecode(userDataString);
+    final userData = HiveService().getData('userData');
+    if (userData != null) {
       setState(() {
-        token = userData['token'] ?? ''; // Gán token vào biến lớp
+        token = userData['token'] ?? '';
       });
       final classId = userData['class_id'] ?? '';
-
-
       try {
         final fetchedAssign = await fetchAssignments(token, classId);
         setState(() {

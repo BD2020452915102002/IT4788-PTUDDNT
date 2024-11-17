@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/api_authen.dart';
 import '../../core/constants/colors.dart';
 
@@ -43,12 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = jsonDecode(response.body);
       final userData = data['data'];
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userData', jsonEncode(userData));
-
-      String? role = jsonDecode(prefs.getString('userData')!)['role'];
-      String? token = jsonDecode(prefs.getString('userData')!)['token'];
-
+      String? role = userData['role'];
+      String? token = userData['token'];
+      HiveService().saveData('userData', userData);
       Token().save(token!);
 
       if (!mounted) return;
@@ -57,9 +54,12 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (role == 'LECTURER') {
         Navigator.pushReplacementNamed(context, '/home-lecturer');
       }
-    } else {
+    }
+    else {
+      final res = jsonDecode(response.body);
+      String message = res['message'];
       setState(() {
-        _errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+        _errorMessage = message;
       });
     }
   }
@@ -69,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-
         padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
@@ -77,7 +76,6 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 80),
-
               const Row(
                 children: [
                   Column(
@@ -131,7 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 40),
               Column(
-
                 children: [
                   TextFormField(
                     controller: _emailController,

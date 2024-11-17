@@ -1,18 +1,12 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:ptuddnt/core/utils/hive.dart';
 class Token {
-  Future<String?> get() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+  String? get() {
+    return HiveService().getData('token');
   }
-
   Future<void> save(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
+    await HiveService().saveData('token', token);
   }
-
   Future<void> remove() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    await HiveService().deleteData('token');
   }
 }

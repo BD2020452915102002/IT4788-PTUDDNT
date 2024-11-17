@@ -1,9 +1,6 @@
-
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 
 class HomeScreenStudent extends StatefulWidget {
   const HomeScreenStudent({super.key});
@@ -42,20 +39,16 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userData');
-
+    HiveService().clearBox();
     if (!mounted) return;
     Navigator.pushNamed(context, '/login');
   }
 
   Future<void> _loadUserData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      String? userDataString = prefs.getString('userData');
+      final userData = HiveService().getData('userData');
 
-      if (userDataString != null) {
-        final userData = jsonDecode(userDataString);
+      if (userData != null) {
         List<dynamic> classList = userData['class_list'] ?? [];
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';

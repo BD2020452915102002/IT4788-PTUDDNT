@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'dart:convert';
 import '../../../core/utils/token.dart';
 import '../../../core/config/api_class.dart';
@@ -150,9 +150,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userData');
-
+   HiveService().clearBox();
     Navigator.pushNamed(context, '/login');
   }
 

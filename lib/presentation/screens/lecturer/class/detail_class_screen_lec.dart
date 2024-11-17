@@ -1,23 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/core/utils/token.dart';
 import 'package:ptuddnt/presentation/screens/lecturer/class/assignment/assignment.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'matetial/mater.dart';
-
-Future<String?> getToken() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString('token');
-}
-
-
 
 class DetailClassScreenLec extends StatefulWidget {
     final Map<String, dynamic> classData;
-    const DetailClassScreenLec({Key? key, required this.classData}) : super(key: key);
+    const DetailClassScreenLec({super.key, required this.classData});
 
     @override
-    _DetailClassScreenLecState createState() => _DetailClassScreenLecState();
+    State<DetailClassScreenLec> createState() => _DetailClassScreenLecState();
 }
 class _DetailClassScreenLecState extends State<DetailClassScreenLec> {
     late String token = '';
@@ -27,13 +19,11 @@ class _DetailClassScreenLecState extends State<DetailClassScreenLec> {
     void initState() {
       super.initState();
       classId = widget.classData['class_id'] ?? 'Unknown';
-
       _loadToken();
     }
     Future<void> _loadToken() async {
-      String? fetchedToken = await getToken();
       setState(() {
-        token = fetchedToken ?? 'Token not found';
+        token = Token().get() ?? 'Token not found';
       });
       print("Class ID: ${classId}");
       print("Token: $token");

@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/utils/token.dart';
+import 'package:ptuddnt/core/utils/token.dart';
 import 'about_material/list_material.dart';
-
-Future<String?> getToken() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString('token');
-}
 
 class DetailClassScreenStudent extends StatelessWidget {
   final Map<String, dynamic> classData;
@@ -70,7 +64,7 @@ class _ClassInfoButton extends StatelessWidget {
 class _ViewMaterialsButton extends StatefulWidget {
 
   final Map<String, dynamic> classData;
-  _ViewMaterialsButton({required this.classData});
+  const _ViewMaterialsButton({required this.classData});
 
   @override
   _ViewMaterialsButtonState createState() => _ViewMaterialsButtonState();
@@ -85,9 +79,8 @@ class _ViewMaterialsButtonState extends State<_ViewMaterialsButton> {
     _loadToken();
   }
   Future<void> _loadToken() async {
-    String? fetchedToken = await getToken();
     setState(() {
-      token = fetchedToken ?? 'Token not found';
+      token = Token().get() ?? 'Token not found';
     });
     print("Class ID: ${classId}");
     print("Token: $token");

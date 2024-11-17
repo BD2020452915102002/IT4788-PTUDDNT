@@ -31,14 +31,32 @@ class _ListAssignmentState extends State<ListAssignment>
   }
 
   Future<void> fetchAssignments() async {
-    final response = await ApiClass().post('/get_student_assignments', {
+    final response1 = await ApiClass().post('/get_all_surveys', {
+      "token": await Token().get(),
+      "class_id": widget.classData['class_id']
+    });
+    final response2 = await ApiClass().post('/get_student_assignments', {
       "token": await Token().get(),
     });
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+    List<Map<String, dynamic>> combinedData = [];
+    if (response1.statusCode == 200 && response2.statusCode == 200) {
+      final data1 = json.decode(response1.body);
+      final data2 = json.decode(response1.body);
+      for (var assignment1 in data1['data']) {
+        var matchingAssignment = data2['data'].firstWhere(
+              (assignment2) => assignment2['title'] == assignment1['title'],
+          orElse: () => null,
+        );
+        if (matchingAssignment != null) {
+          combinedData.add({
+            ...assignment1,
+            'is_submitted': matchingAssignment['is_submitted'],
+          });
+        }
+      }
       setState(() {
-        final allAssignments = data['data'];
+        final allAssignments = combinedData;
+        print(allAssignments);
         final now = DateTime.now();
 
         // Classify assignments by completion status
@@ -47,7 +65,7 @@ class _ListAssignmentState extends State<ListAssignment>
             .toList();
 
         final notCompletedAssignments = allAssignments
-            .where((assignment) => assignment['is_submitted'] == false)
+            .where((assignment) => assignment['is_submitted'] != true)
             .toList();
 
         // Further classify not completed assignments by deadline
