@@ -1,18 +1,32 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ptuddnt/presentation/widgets/link_text.dart';
+import 'package:http/http.dart' as http;
+import 'package:ptuddnt/core/config/api_class.dart';
+import 'package:ptuddnt/core/utils/token.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/constants/colors.dart';
 
-class AssignmentDetailScreen extends StatelessWidget {
+class AssignmentDetailScreen extends StatefulWidget {
   final Map<String, dynamic> assignment;
 
   const AssignmentDetailScreen({super.key, required this.assignment});
+
+  @override
+  State<AssignmentDetailScreen> createState() => _AssignmentDetailScreenState();
+}
+
+class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
+  String? textResponse;
+  File? selectedFile;
 
   String formatDeadline(String deadline) {
     final deadlineDate = DateTime.parse(deadline);
     return DateFormat('dd-MM-yyyy, HH:mm').format(deadlineDate);
   }
+
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -21,6 +35,42 @@ class AssignmentDetailScreen extends StatelessWidget {
       print('Could not launch $url');
     }
   }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      setState(() {
+        selectedFile = File(result.files.single.path!);
+      });
+    }
+  }
+
+  Future<void> _submitAssignment() async {
+    if (selectedFile != null && textResponse != null) {
+      final api = ApiClass();
+      final token = await Token().get();
+      print('token ${token}${textResponse}');
+      final assignmentID = widget.assignment['id'];
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse("http://160.30.168.228:8080/it5023e/submit_survey?file"),
+      );
+
+      request.fields['token'] = token!;
+      request.fields['assignmentId'] = assignmentID!;
+      request.fields['textResponse'] = textResponse ?? '';
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          selectedFile!.path,
+        ),
+      );
+      var response = await request.send();
+      print(response);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +93,7 @@ class AssignmentDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView( // Giúp cuộn màn hình khi nội dung quá dài
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -51,14 +101,15 @@ class AssignmentDetailScreen extends StatelessWidget {
             children: [
               Center(
                 child: Text(
-                  assignment['title'],
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  widget.assignment['title'],
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 8),
               Center(
                 child: Text(
-                  'Hạn: ${formatDeadline(assignment['deadline'])}',
+                  'Hạn: ${formatDeadline(widget.assignment['deadline'])}',
                   style: const TextStyle(color: Colors.grey),
                 ),
               ),
@@ -72,7 +123,7 @@ class AssignmentDetailScreen extends StatelessWidget {
                 color: Colors.grey[50],
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
-                child: Text(assignment['description']),
+                child: Text(widget.assignment['description']),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -87,12 +138,12 @@ class AssignmentDetailScreen extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        if (assignment['file_url'] != null) {
-                          _launchURL(assignment['file_url']);
+                        if (widget.assignment['file_url'] != null) {
+                          _launchURL(widget.assignment['file_url']);
                         }
                       },
                       child: Text(
-                        "${assignment['file_url'] ?? 'N/A'}",
+                        "${widget.assignment['file_url'] ?? 'N/A'}",
                         style: TextStyle(
                           color: Colors.blue,
                           decoration: TextDecoration.underline,
@@ -102,7 +153,7 @@ class AssignmentDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const Divider(height: 32, color: Colors.red),
+              const Divider(height: 32, color: AppColors.primary),
               const Text(
                 'Nộp bài',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -113,9 +164,24 @@ class AssignmentDetailScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Container(
-                height: 100,
-                color: Colors.grey[300],
+              TextField(
+                onChanged: (value) {
+                  setState(() {
+                    textResponse = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Nhập mô tả bài làm...',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(0),
+                      borderSide: BorderSide(color: Colors.white30)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(0),
+                      borderSide: BorderSide(color: AppColors.primary)),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+                maxLines: 5,
               ),
               const SizedBox(height: 16),
               const Text(
@@ -125,19 +191,29 @@ class AssignmentDetailScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.attach_file, color: Colors.black),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      minimumSize: WidgetStateProperty.all<Size>(Size(40, 50)),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      backgroundColor:
+                          WidgetStateProperty.all<Color>(AppColors.primary),
+                    ),
+                    onPressed: _pickFile,
+                    child: const Icon(Icons.attach_file, color: Colors.white),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: TextField(
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        hintText: 'Mô tả, yêu cầu giao diện.docx',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: const BorderSide(color: Colors.red),
-                        ),
-                        filled: true,
-                        fillColor: Colors.pink[50],
+                    child: Text(
+                      selectedFile != null
+                          ? selectedFile!.path.split('/').last
+                          : 'Chưa chọn file',
+                      style: TextStyle(
+                        color: Colors.grey,
                       ),
                     ),
                   ),
@@ -146,11 +222,11 @@ class AssignmentDetailScreen extends StatelessWidget {
               const SizedBox(height: 32),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _submitAssignment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 64),
+                        vertical: 16, horizontal: 52),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

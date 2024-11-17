@@ -39,19 +39,4 @@ class ApiClass {
     );
     return response;
   }
-
-  Future<http.Response> multipartPost(String endpoint,
-      Map<String, dynamic> body,
-      File file) async {
-    final url = Uri.parse('$baseUrl$endpoint');
-    final request = http.MultipartRequest('POST', url);
-    body.forEach((key, value) {
-      request.fields[key] = value.toString();
-    });
-    request.files.add(await http.MultipartFile.fromPath('file', file.path));
-    request.headers['Content-Type'] = 'multipart/form-data';
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-    return response;
-  }
 }
