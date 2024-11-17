@@ -68,13 +68,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
+      body: SingleChildScrollView(
+
         padding: const EdgeInsets.all(20.0),
         child: Form(
-          key: _formKey, // Associate the form key with the Form widget
+          key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SizedBox(height: 80),
+
               const Row(
                 children: [
                   Column(
@@ -121,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: EdgeInsets.only(left: 60),
                     child: Image(
                       image: AssetImage("assets/logo-hust.png"),
-                      height: 180,
+                      height: 140,
                     ),
                   )
                 ],
