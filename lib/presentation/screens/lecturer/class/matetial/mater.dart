@@ -292,7 +292,7 @@ class _MaterialScreenState extends State<MaterialScreen>{
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: Text('Xác nhận'),
-                      content: Text('Bạn phải cập nhật lại file nếu muốn sửa.'),
+                      content: Text('Bạn phải cập nhật lại file nếu muốn tiếp tục sửa.'),
                       actions: [
                         TextButton(
                           onPressed: () {
