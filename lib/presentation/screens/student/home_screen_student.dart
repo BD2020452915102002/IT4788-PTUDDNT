@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   final ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
   List<dynamic> _classList = [];
   List<dynamic> _classListShow = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
@@ -25,6 +25,9 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   void initState() {
     super.initState();
     _initializeData();
+    setState(() {
+      _classList = HiveService().getData('classList') ;
+    });
     _classListHidden.addListener(_updateVisibleClasses);
   }
   Future<void> _initializeData() async {
@@ -54,8 +57,10 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       throw ArgumentError('Invalid Google Drive link format');
     }
   }
-
   Future<void> fetchClassList() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final userData = HiveService().getData('userData');
       final accountId = userData?['id']?.toString() ?? '';
@@ -77,7 +82,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         final classList = data['data'];
         await HiveService().saveData('classList', classList);
         setState(() {
-          _classList = classList;
           _isLoading = false;
         });
       } else {
@@ -93,7 +97,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
     }
   }
-
   Future<void> _loadUserData() async {
     try {
       final userData = HiveService().getData('userData');
@@ -129,7 +132,28 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
     }
   }
-
+  Future<void> _registerClassAPI (List<String> classIds)async {
+    try {
+      final res = await ApiClass().post('/register_class', {
+        "token": Token().get(),
+        "role": HiveService().getData('userData')['role'],
+        "class_ids": classIds
+      });
+      if ( res.statusCode == 200){
+        fetchClassList();
+        setState(() {
+          _classList = HiveService().getData('classList') ;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng ký thành công')),
+        );
+      }
+    }catch (e){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã xảy ra lỗi. Vui lòng thử lại sau.')),
+      );
+    }
+}
   void _showClassManagementDialog() {
     showDialog(
       context: context,
@@ -190,56 +214,68 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     );
   }
   void _registerClass() {
+    List<TextEditingController> controllers = [TextEditingController()]; // Danh sách controllers cho TextField
+    List<String> classIds = [];  // Mảng để lưu các ID lớp học
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Đăng ký lớp học'),
           content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: _classList.isNotEmpty ? ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _classList.length,
-                    itemBuilder: (context, index) {
-                      final classData = _classList[index];
-                      final isHidden = _classListHidden.value.any(
-                              (item) => item['class_id'] == classData['class_id']);
-
-                      return CheckboxListTile(
-                        title: Text(classData['class_name']),
-                        value: !isHidden,
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == true) {
-                              _classListHidden.value =
-                              List.from(_classListHidden.value)
-                                ..remove(classData);
-                            } else {
-                              _classListHidden.value =
-                              List.from(_classListHidden.value)
-                                ..add(classData);
-                            }
-                          });
+            builder: (context, setState) {
+              return SingleChildScrollView(  // Thêm SingleChildScrollView để cuộn
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Hiển thị các trường nhập ID lớp học
+                    ...List.generate(controllers.length, (index) {
+                      return TextFormField(
+                        controller: controllers[index],
+                        decoration: InputDecoration(
+                          labelText: 'Nhập ID lớp học ${index + 1}',
+                        ),
+                        onSaved: (value) {
+                          if (value != null && value.isNotEmpty) {
+                            classIds.add(value);  // Lưu ID lớp học vào mảng
+                          }
                         },
                       );
-                    },
-                  ): const Text('Oh no!')
+                    }),
+                    // Nút để thêm trường nhập ID lớp học mới
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        setState(() {
+                          controllers.add(TextEditingController()); // Thêm controller mới
+                        });
+                      },
+                    ),
+                  ],
+                ),
               );
             },
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop();  // Đóng cửa sổ
               },
               child: const Text('Hủy'),
             ),
             TextButton(
               onPressed: () {
-                _updateVisibleClasses();
-                Navigator.of(context).pop();
+                // Lưu các ID lớp học vào mảng khi nhấn OK
+                classIds.clear();  // Xóa mảng classIds cũ trước khi thêm mới
+                controllers.forEach((controller) {
+                  if (controller.text.isNotEmpty) {
+                    classIds.add(controller.text);  // Lưu tất cả ID vào mảng
+                  }
+                });
+
+                if (classIds.isNotEmpty) {
+                  _registerClassAPI(classIds);  // Gọi API khi mảng classIds không rỗng
+                }
+                Navigator.of(context).pop();  // Đóng cửa sổ
               },
               child: const Text('OK'),
             ),
@@ -248,6 +284,8 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       },
     );
   }
+
+
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -267,7 +305,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 ListTile(
                   leading: const Icon(Icons.add),
                   title: const Text( 'Tham gia lớp học'),
-                  onTap: _registerClass
+                  onTap: _registerClass,
                 ),
               ],
             ),
