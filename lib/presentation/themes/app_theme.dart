@@ -20,6 +20,7 @@ class AppTheme {
           900: Color(0xFF160A14),
         },
       ),
+      fontFamily: 'Roboto',
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: Colors.white,
       inputDecorationTheme: InputDecorationTheme(

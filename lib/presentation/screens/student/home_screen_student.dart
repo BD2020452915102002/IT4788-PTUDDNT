@@ -189,6 +189,65 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       },
     );
   }
+  void _registerClass() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Đăng ký lớp học'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: _classList.isNotEmpty ? ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _classList.length,
+                    itemBuilder: (context, index) {
+                      final classData = _classList[index];
+                      final isHidden = _classListHidden.value.any(
+                              (item) => item['class_id'] == classData['class_id']);
+
+                      return CheckboxListTile(
+                        title: Text(classData['class_name']),
+                        value: !isHidden,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              _classListHidden.value =
+                              List.from(_classListHidden.value)
+                                ..remove(classData);
+                            } else {
+                              _classListHidden.value =
+                              List.from(_classListHidden.value)
+                                ..add(classData);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ): const Text('Oh no!')
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () {
+                _updateVisibleClasses();
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -207,10 +266,8 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 const SizedBox(height: 40),
                 ListTile(
                   leading: const Icon(Icons.add),
-                  title: const Text('Tham gia lớp học'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
+                  title: const Text( 'Tham gia lớp học'),
+                  onTap: _registerClass
                 ),
               ],
             ),

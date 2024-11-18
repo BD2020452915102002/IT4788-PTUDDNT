@@ -37,7 +37,7 @@ class DetailClassScreenStudent extends StatelessWidget {
           children: [
             _ClassInfoButton(classId: classData['class_id']),
             _ViewMaterialsButton(classData: classData),
-            _AssignmentsButton(classData: classData),
+            // _AssignmentsButton(classData: classData),
             _AttendanceButton(classData: classData),
             _RequestLeaveButton(classId: classData['class_id']),
           ],
