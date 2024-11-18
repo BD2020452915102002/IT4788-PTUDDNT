@@ -97,6 +97,7 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
         SnackBar(content: Text('Lưu thành công')),
       );
       Navigator.pop(context, true);
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lưu thất bại: ${response.statusCode}')),

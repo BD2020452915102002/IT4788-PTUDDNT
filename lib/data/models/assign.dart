@@ -5,7 +5,7 @@ class Assignment {
   final int lecturerId;
   final String classId;
   final DateTime deadline;
-  final String? fileUrl;
+  final String? assignmentLink;
 
   Assignment({
     required this.id,
@@ -14,7 +14,7 @@ class Assignment {
     required this.lecturerId,
     required this.classId,
     required this.deadline,
-    this.fileUrl,
+    required this.assignmentLink,
   });
 
   factory Assignment.fromJson(Map<String, dynamic> json) {
@@ -25,7 +25,7 @@ class Assignment {
       lecturerId: json['lecturer_id'],
       classId: json['class_id'],
       deadline: DateTime.parse(json['deadline']),
-      fileUrl: json['file_url'],
+      assignmentLink: json['material_link'] as String? ?? 'No Link',
     );
   }
 }

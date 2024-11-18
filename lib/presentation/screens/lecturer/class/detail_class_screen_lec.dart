@@ -128,7 +128,7 @@ class _CreateAssignmentButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AssignmentPage(token: token, classId: classData['class_id']),
+            builder: (context) => AssignmentScreen(token: token, classId: classData['class_id']),
           ),
         );
       },
