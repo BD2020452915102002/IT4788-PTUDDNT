@@ -4,6 +4,7 @@ import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
+import 'package:ptuddnt/presentation/screens/login_screen.dart';
 import 'package:ptuddnt/presentation/screens/student/class/detail_class_screen_student.dart';
 
 class HomeScreenStudent extends StatefulWidget {
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   }
   Future<void> _initializeData() async {
     final classList = HiveService().getData('classList') ?? [];
+    print('vao day dcm $classList');
     if( classList == []) {
       await fetchClassList();
     }
@@ -44,8 +46,10 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     });
   }
   Future<void> fetchClassList() async {
+    print('vao day fetch list');
     try {
       final userData = HiveService().getData('userData');
+      print('vao day $userData');
       final accountId = userData?['id']?.toString() ?? '';
       if (accountId.isEmpty) {
         setState(() {
@@ -53,13 +57,13 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         });
         return;
       }
-
+      print('vao day');
       final res = await ApiClass().post('/get_class_list', {
         "token": Token().get(),
         "role": "STUDENT",
         "account_id": accountId,
       });
-
+      print('vao day res.statusCode ${res.statusCode}');
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final classList = data['data'];
@@ -121,7 +125,12 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   Future<void> _logout() async {
     HiveService().clearBox();
     if (!mounted) return;
-    Navigator.pushNamed(context, '/login');
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+          (Route<dynamic> route) => false, // Điều kiện để loại bỏ tất cả các route hiện tại
+    );
+
   }
   void _showClassManagementDialog() {
     showDialog(
