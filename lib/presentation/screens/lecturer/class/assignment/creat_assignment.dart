@@ -65,6 +65,9 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
       print('classId: $classId');
       print('selectedFile: $selectedFile');
       print("Token, classId, or file is missing");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Missing somethings...')),
+      );
       return;
     }
 

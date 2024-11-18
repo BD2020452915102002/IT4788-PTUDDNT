@@ -352,11 +352,26 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                         color: Colors.black,
                       ),
                     ),
-                    TextSpan(
-                      text: '\n${assignment.assignmentLink}', // Phần link xuống dòng
-                      style: TextStyle(
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline, // Đường gạch chân
+                    WidgetSpan(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (assignment.assignmentLink != null && assignment.assignmentLink!.isNotEmpty) {
+                            _launchURL(assignment.assignmentLink!); // Gọi hàm mở link
+                          }
+                        },
+                        child: Text(
+                          assignment.assignmentLink != null && assignment.assignmentLink!.isNotEmpty
+                              ? assignment.assignmentLink!
+                              : 'N/A', // Hiển thị "N/A" nếu link bị null hoặc rỗng
+                          style: TextStyle(
+                            color: assignment.assignmentLink != null && assignment.assignmentLink!.isNotEmpty
+                                ? Colors.blue
+                                : Colors.grey, // Đổi màu xám nếu link không khả dụng
+                            decoration: assignment.assignmentLink != null && assignment.assignmentLink!.isNotEmpty
+                                ? TextDecoration.underline
+                                : TextDecoration.none, // Không gạch chân nếu link không khả dụng
+                          ),
+                        ),
                       ),
                     ),
                   ],

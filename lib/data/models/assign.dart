@@ -25,7 +25,7 @@ class Assignment {
       lecturerId: json['lecturer_id'],
       classId: json['class_id'],
       deadline: DateTime.parse(json['deadline']),
-      assignmentLink: json['material_link'] as String? ?? 'No Link',
+      assignmentLink: json['file_url'] as String? ?? 'No Link',
     );
   }
 }
