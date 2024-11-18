@@ -31,34 +31,55 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   int currentPageIndex = 0;
-  int unreadNotificationsCount = 0;
+  String unreadNotificationsCountXXX = '';
 
   @override
   void initState() {
     super.initState();
-    fetchUnreadNotificationsCount();
+    _initializeData();
   }
-
-  Future<void> fetchUnreadNotificationsCount() async {
+  Future<void> _initializeData() async {
     final countNotify = HiveService().getData('thongbao');
-    print('duc$countNotify');
     if (countNotify == null) {
-      try {
-        final response = await ApiClass()
-            .post('/get_unread_notification_count', {"token": Token().get()});
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          HiveService().saveData('thongbao', data['data']);
-        } else {
-          throw Exception('Không thể tải số thông báo chưa đọc');
-        }
-      } catch (e) {
-        print('Lỗi khi gọi API: $e');
-      }
+      await fetchUnreadNotificationsCount();
     }
     setState(() {
-      unreadNotificationsCount = HiveService().getData('thongbao');
+      unreadNotificationsCountXXX = HiveService().getData('thongbao').toString();
     });
+  }
+  Future<void> fetchUnreadNotificationsCount() async {
+    try {
+      final response = await ApiClass()
+          .post('/get_unread_notification_count', {"token": Token().get()});
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final unreadCount = data['data'];
+        HiveService().saveData('thongbao', unreadCount);
+      } else {
+        throw Exception('Không thể tải số thông báo chưa đọc');
+      }
+    } catch (e) {
+      print('Lỗi khi gọi API: $e');
+    }
+  }
+
+  Future<void> setCount() async {
+    try {
+      final response = await ApiClass()
+          .post('/get_unread_notification_count', {"token": Token().get()});
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final unreadCount = data['data'];
+        await HiveService().saveData('thongbao', unreadCount);
+        setState(() {
+          unreadNotificationsCountXXX = HiveService().getData('thongbao').toString();
+        });
+      } else {
+        throw Exception('Không thể tải số thông báo chưa đọc');
+      }
+    } catch (e) {
+      print('Lỗi khi gọi API: $e');
+    }
   }
 
   @override
@@ -73,7 +94,7 @@ class _NavigationState extends State<Navigation> {
         },
         indicatorColor: AppColors.primary,
         selectedIndex: currentPageIndex,
-        destinations: const <Widget>[
+        destinations:  <Widget>[
           NavigationDestination(
             selectedIcon: Icon(
               Icons.home,
@@ -84,19 +105,33 @@ class _NavigationState extends State<Navigation> {
           ),
           NavigationDestination(
             icon: Badge(
-              label: Text('2'),
-              child: Icon(Icons.messenger_sharp),
+              label: Text('1'),
+              child: const Icon(Icons.messenger_outline_sharp),
+            ),
+            selectedIcon: Badge(
+              label: Text('1'),
+              child: const Icon(
+                Icons.messenger_sharp,
+                color: Colors.white,
+              ),
             ),
             label: 'Tin nhắn',
           ),
           NavigationDestination(
-            icon: Badge(
-              // label: Text(unreadNotificationsCount.toString()),
-              child: Icon(Icons.notifications_sharp),
+            icon: int.parse(unreadNotificationsCountXXX) == 0
+                ? Icon(Icons.notifications_none)
+                : Badge(
+              label: Text(unreadNotificationsCountXXX),
+              child: const Icon(Icons.notifications_none),
             ),
-            selectedIcon: Badge(
-              // label: Text(unreadNotificationsCount.toString()),
-              child: Icon(
+            selectedIcon: int.parse(unreadNotificationsCountXXX) == 0
+                ? Icon(
+              Icons.notifications_sharp,
+              color: Colors.white,
+            )
+                : Badge(
+              label: Text(unreadNotificationsCountXXX),
+              child: const Icon(
                 Icons.notifications_sharp,
                 color: Colors.white,
               ),
@@ -108,7 +143,7 @@ class _NavigationState extends State<Navigation> {
       body: <Widget>[
         HomeScreenLec(),
         ChatScreen(),
-        NotifycationScreen(fetchUnreadNotificationsCount: fetchUnreadNotificationsCount)
+        NotifycationScreen(fetchUnreadNotificationsCount: setCount)
       ][currentPageIndex],
     );
   }
