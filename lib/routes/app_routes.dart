@@ -8,12 +8,12 @@ import 'package:ptuddnt/presentation/screens/splash_screen.dart';
 import 'package:ptuddnt/presentation/screens/login_screen.dart';
 import 'package:ptuddnt/presentation/screens/register_screen.dart';
 import 'package:ptuddnt/presentation/screens/student/absence_request/request_absence_student.dart';
+import 'package:ptuddnt/presentation/screens/student/information_student_screen.dart';
 // import '../presentation/screens/lecturer/class/assignment/assignment.dart';
 import '../presentation/screens/lecturer/home_screen_lecture.dart';
 import '../presentation/screens/student/class/list_assignment.dart';
 import '../presentation/screens/lecturer/register_class_screen.dart';
 import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
-import 'package:ptuddnt/presentation/screens/student/class/absent_record_screen.dart';
 
 
 class AppRoutes {
@@ -38,14 +38,16 @@ class AppRoutes {
       return ListAssignment(classData: classData);
     },
     '/detail-assignment-student': (context) {
-          final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return AssignmentDetailScreen(assignment: assignment);
-        },
-    '/absent-record-student': (context) => const AttendanceRecordScreen(),
-
+      final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      return AssignmentDetailScreen(assignment: assignment);
+    },
     '/request-absence': (context) {
-      final classData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      return LeaveRequestScreen(classData: classData);
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return LeaveRequestScreen(classId: classId);
+    },
+    '/information-student': (context) {
+      final userId = ModalRoute.of(context)!.settings.arguments as String;
+      return StudentInfoScreen(userId: userId);
     },
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
     '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(),

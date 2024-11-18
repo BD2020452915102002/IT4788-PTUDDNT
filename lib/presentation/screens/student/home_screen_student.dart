@@ -19,7 +19,8 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
-  late String avata;
+  String userId = '';
+  late String avatar;
 
   @override
   void initState() {
@@ -54,13 +55,15 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
         String userNamekkk = userData['name'] ?? '';
+        String userIdkkk = userData['id'].toString();
 
         setState(() {
           _classList = classList;
           _isLoading = false;
           hoTen = '$ho $ten';
-          avata = avatarURL;
+          avatar = avatarURL;
           userName = userNamekkk;
+          userId = userIdkkk;
         });
         if (classList.isEmpty){
           setState(() {
@@ -311,7 +314,14 @@ class _HomeScreenState extends State<HomeScreenStudent> {
             ),
             ListTile(
               title: const Text('Thông tin cá nhân'),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/information-student',
+                  arguments: userId,
+
+                );
+              },
             ),
             ListTile(
               title: const Text('Đăng xuất'),

@@ -40,7 +40,7 @@ class DetailClassScreenStudent extends StatelessWidget {
             _ViewMaterialsButton(classData: classData),
             _AssignmentsButton(classData: classData),
             _AttendanceButton(),
-            _RequestLeaveButton(classData: classData),
+            _RequestLeaveButton(classId: classData['class_id']),
           ],
         ),
       ),
@@ -141,9 +141,9 @@ class _AttendanceButton extends StatelessWidget {
 }
 
 class _RequestLeaveButton extends StatelessWidget {
-  final Map<String, dynamic> classData;
+  final String classId;
 
-  const _RequestLeaveButton({required this.classData});
+  const _RequestLeaveButton({required this.classId});
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +152,7 @@ class _RequestLeaveButton extends StatelessWidget {
         Navigator.pushNamed(
           context,
           '/request-absence',
-          arguments: classData,
+          arguments: classId,
         );
       },
       style: _buttonStyle,

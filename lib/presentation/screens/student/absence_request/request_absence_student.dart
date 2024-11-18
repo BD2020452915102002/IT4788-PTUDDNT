@@ -5,22 +5,48 @@ import 'package:path/path.dart' as path;
 import 'package:image_picker/image_picker.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:ptuddnt/core/utils/token.dart';
 
 class LeaveRequestScreen extends StatefulWidget {
-  final Map<String, dynamic> classData;
+  final String classId;
 
-  const LeaveRequestScreen({Key? key, required this.classData}) : super(key: key);
+  const LeaveRequestScreen({super.key, required this.classId});
 
   @override
-  _LeaveRequestScreenState createState() => _LeaveRequestScreenState();
+  LeaveRequestScreenState createState() => LeaveRequestScreenState();
 }
 
-class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
+class LeaveRequestScreenState extends State<LeaveRequestScreen> {
   final TextEditingController _reasonController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
   File? _selectedFile;
   final _picker = ImagePicker();
   DateTime? _selectedDate;
+  bool _isSubmitting = false;
 
+  late final String token ;
+
+  @override
+  void initState() {
+    super.initState();
+    _getToken();
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _getToken() async {
+    token = (await Token().get())!;
+  }
   Future<void> _pickFile() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -40,6 +66,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
   }
@@ -48,7 +75,7 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 80.0, // Khoảng cách từ trên xuống
+        top: 80.0,
         left: 0.0,
         right: 0.0,
         child: Align(
@@ -71,21 +98,38 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       ),
     );
 
-    // Thêm OverlayEntry vào màn hình
     overlay.insert(overlayEntry);
 
-    // Ẩn thông báo sau 3 giây
     Future.delayed(const Duration(seconds: 3), () {
       overlayEntry.remove();
     });
   }
 
+  bool _isFormValid() {
+    return _selectedDate != null && _reasonController.text.isNotEmpty;
+  }
+
   Future<void> _submitAbsenceRequest() async {
+    if (_isSubmitting || !_isFormValid()) {
+      _showCustomSnackBar('Vui lòng điền đầy đủ thông tin', context);
+      return;
+    }
+
+    if (token == '') {
+      print('duc ${token}');
+      _showCustomSnackBar('Token không hợp lệ', context);
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
     final url = Uri.parse('http://160.30.168.228:8080/it5023e/request_absence');
 
     final request = http.MultipartRequest('POST', url)
-      ..fields['token'] = 'RiTn0v'
-      ..fields['classId'] = '000002'
+      ..fields['token'] = token
+      ..fields['classId'] = widget.classId
       ..fields['date'] = _selectedDate != null ? DateFormat('yyyy-MM-dd').format(_selectedDate!) : ''
       ..fields['reason'] = _reasonController.text;
 
@@ -99,13 +143,17 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
 
     final response = await request.send();
 
+    setState(() {
+      _isSubmitting = false;
+    });
+
     if (response.statusCode == 200) {
       _showCustomSnackBar('Gửi yêu cầu thành công', context);
     } else {
-      _showCustomSnackBar('Gửi yêu cầu thất bại', context);
+      final responseBody = await response.stream.bytesToString();
+      _showCustomSnackBar('Gửi yêu cầu thất bại: $responseBody', context);
     }
   }
-
 
   Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
     return Padding(
@@ -164,19 +212,10 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                   GestureDetector(
                     onTap: _pickDate,
                     child: AbsorbPointer(
-                      child: _buildTextField(
-                        "Ngày xin nghỉ",
-                        TextEditingController(
-                          text: _selectedDate != null
-                              ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
-                              : "",
-                        ),
-                      ),
+                      child: _buildTextField("Ngày xin nghỉ", _dateController),
                     ),
                   ),
                   _buildTextField("Lý do", _reasonController, maxLines: 3),
-
-                  // Add file picker button here
                   const SizedBox(height: 16),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -186,16 +225,21 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                     ),
                     onPressed: _pickFile,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
                           Icons.attach_file,
-                          color: Colors.black, // Đặt màu icon thành đen
+                          color: Colors.black,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          _selectedFile == null ? "Minh chứng" : "File đã chọn: ${path.basename(_selectedFile!.path)}",
-                          style: const TextStyle(color: Colors.black),
+                        Expanded(
+                          child: Text(
+                            _selectedFile == null
+                                ? "Nộp minh chứng"
+                                : "File đã chọn: ${path.basename(_selectedFile!.path)}",
+                            style: const TextStyle(color: Colors.black),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
                       ],
                     ),
@@ -205,7 +249,6 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
               ),
             ),
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -214,8 +257,10 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(120, 50),
                 ),
-                onPressed: _submitAbsenceRequest,
-                child: const Text("Xác nhận", style: TextStyle(fontSize: 18)),
+                onPressed: _isSubmitting ? null : _submitAbsenceRequest,
+                child: _isSubmitting
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : const Text("Xác nhận", style: TextStyle(fontSize: 18)),
               ),
             ),
           ),
