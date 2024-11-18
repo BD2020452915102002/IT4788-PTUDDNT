@@ -35,7 +35,7 @@ class DetailClassScreenStudent extends StatelessWidget {
           mainAxisSpacing: 20.0,
           childAspectRatio: 1,
           children: [
-            _ClassInfoButton(),
+            _ClassInfoButton(classId: classData['class_id']),
             _ViewMaterialsButton(classData: classData),
             _AssignmentsButton(classData: classData),
             _AttendanceButton(classData: classData),
@@ -48,10 +48,17 @@ class DetailClassScreenStudent extends StatelessWidget {
 }
 
 class _ClassInfoButton extends StatelessWidget {
+  final String classId;
+  const _ClassInfoButton({required this.classId});
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
+        Navigator.pushNamed(
+          context,
+          '/class-info',
+          arguments: classId,
+        );
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.class_, 'Thông tin lớp học'),

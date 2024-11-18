@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:ptuddnt/presentation/screens/class_info.dart';
 import '../presentation/screens/forgot_password_screen.dart';
 import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
 import '../presentation/screens/lecturer/class/detail_class_screen_lec.dart';
@@ -25,6 +26,7 @@ class AppRoutes {
       final classData = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
       return DetailClassScreenLec(classData: classData);
     },
+
     '/class-detail-student': (context) {
       final classData = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
       return DetailClassScreenStudent(classData: classData);
@@ -42,6 +44,10 @@ class AppRoutes {
     '/request-absence': (context) {
       final classId = ModalRoute.of(context)!.settings.arguments as String;
       return LeaveRequestScreen(classId: classId);
+    },
+    '/class-info': (context) {
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return ClassInfo(classId: classId);
     },
     '/information-student': (context) {
       final userId = ModalRoute.of(context)!.settings.arguments as String;
