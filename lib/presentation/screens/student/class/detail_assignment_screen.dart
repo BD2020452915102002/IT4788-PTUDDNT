@@ -1,16 +1,15 @@
 import 'dart:io';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../core/constants/colors.dart';
 
 class AssignmentDetailScreen extends StatefulWidget {
-  final Map<String, dynamic> assignment;
+  final Map<dynamic, dynamic> assignment;
 
   const AssignmentDetailScreen({super.key, required this.assignment});
 
@@ -26,7 +25,6 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
     final deadlineDate = DateTime.parse(deadline);
     return DateFormat('dd-MM-yyyy, HH:mm').format(deadlineDate);
   }
-
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -35,7 +33,6 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
       print('Could not launch $url');
     }
   }
-
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles();
     if (result != null) {
@@ -44,10 +41,9 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
       });
     }
   }
-
   Future<void> _submitAssignment() async {
     if (selectedFile != null && textResponse != null) {
-      final token = await Token().get() as String;
+      final token =  Token().get();
       final assignmentID = widget.assignment['id'].toString();
 
       var request = http.MultipartRequest(
@@ -70,6 +66,9 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final status = DateTime.parse(widget.assignment['deadline']).isBefore(now);
+    print('duc$status');
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -151,7 +150,7 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                 ],
               ),
               const Divider(height: 32, color: AppColors.primary),
-              const Text(
+               const Text(
                 'Nộp bài',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -198,7 +197,7 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                         ),
                       ),
                       backgroundColor:
-                          WidgetStateProperty.all<Color>(AppColors.primary),
+                      WidgetStateProperty.all<Color>(AppColors.primary),
                     ),
                     onPressed: _pickFile,
                     child: const Icon(Icons.attach_file, color: Colors.white),

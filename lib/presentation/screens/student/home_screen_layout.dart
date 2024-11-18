@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:ptuddnt/core/constants/colors.dart';
-import 'package:ptuddnt/presentation/screens/Chat.dart';
-import 'package:ptuddnt/presentation/screens/notifycation_screen.dart';
-import 'package:ptuddnt/presentation/screens/student/class/list_assignment.dart';
-import 'package:ptuddnt/presentation/screens/student/home_screen_student.dart';
+import 'dart:convert';
 
-class NavigationBarAppStudent extends StatelessWidget {
-  const NavigationBarAppStudent({super.key});
+import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/config/api_class.dart';
+import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
+import 'package:ptuddnt/core/utils/token.dart';
+import 'package:ptuddnt/presentation/screens/Chat.dart';
+import 'package:ptuddnt/presentation/screens/lecturer/home_screen_lecture.dart';
+import 'package:ptuddnt/presentation/screens/notifycation_screen.dart';
+
+class HomeStudent extends StatelessWidget {
+  const HomeStudent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +31,42 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   int currentPageIndex = 0;
+  int unreadNotificationsCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUnreadNotificationsCount();
+  }
+
+  Future<void> fetchUnreadNotificationsCount() async {
+    final countNotify = HiveService().getData('thongbao');
+    print('duc$countNotify');
+
+    if (countNotify == null) {
+      try {
+        final response = await ApiClass()
+            .post('/get_unread_notification_count', {"token": Token().get()});
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          // Assuming 'data' contains the count of unread notifications
+          final unreadCount = data['data'];
+          HiveService().saveData('thongbao', unreadCount);
+          setState(() {
+            unreadNotificationsCount = unreadCount;
+          });
+        } else {
+          throw Exception('Không thể tải số thông báo chưa đọc');
+        }
+      } catch (e) {
+        print('Lỗi khi gọi API: $e');
+      }
+    } else {
+      setState(() {
+        unreadNotificationsCount = countNotify;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +80,8 @@ class _NavigationState extends State<Navigation> {
         },
         indicatorColor: AppColors.primary,
         selectedIndex: currentPageIndex,
-        destinations: const <Widget>[
-          NavigationDestination(
+        destinations: <Widget>[
+          const NavigationDestination(
             selectedIcon: Icon(
               Icons.home,
               color: Colors.white,
@@ -52,20 +92,30 @@ class _NavigationState extends State<Navigation> {
           NavigationDestination(
             icon: Badge(
               label: Text('2'),
-              child: Icon(Icons.messenger_sharp),
+              child: const Icon(Icons.messenger_sharp),
             ),
             label: 'Tin nhắn',
           ),
           NavigationDestination(
-            icon: Badge(child: Icon(Icons.notifications_sharp)),
+            icon: Badge(
+              label: Text(unreadNotificationsCount.toString()),
+              child: const Icon(Icons.notifications_sharp),
+            ),
+            selectedIcon: Badge(
+              label: Text(unreadNotificationsCount.toString()),
+              child: const Icon(
+                Icons.notifications_sharp,
+                color: Colors.white,
+              ),
+            ),
             label: 'Thông báo',
           ),
         ],
       ),
       body: <Widget>[
-        HomeScreenStudent(),
-        ChatScreen(),
-        NotifycationScreen()
+        const HomeScreenLec(),
+        const ChatScreen(),
+        NotifycationScreen(fetchUnreadNotificationsCount: fetchUnreadNotificationsCount)
       ][currentPageIndex],
     );
   }
