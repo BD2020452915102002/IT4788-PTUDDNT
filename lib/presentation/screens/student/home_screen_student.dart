@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   Future<void> _initializeData() async {
     final classList = HiveService().getData('classList') ?? [];
     print('vao day dcm $classList');
-    if( classList == []) {
+    if( classList.isEmpty ) {
       await fetchClassList();
     }
     await _loadUserData();
@@ -57,13 +57,13 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         });
         return;
       }
-      print('vao day');
+
       final res = await ApiClass().post('/get_class_list', {
         "token": Token().get(),
         "role": "STUDENT",
         "account_id": accountId,
       });
-      print('vao day res.statusCode ${res.statusCode}');
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final classList = data['data'];
@@ -122,16 +122,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
     }
   }
-  Future<void> _logout() async {
-    HiveService().clearBox();
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-          (Route<dynamic> route) => false, // Điều kiện để loại bỏ tất cả các route hiện tại
-    );
 
-  }
   void _showClassManagementDialog() {
     showDialog(
       context: context,
@@ -259,17 +250,10 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           final classData = _classListShow[index] as Map<dynamic, dynamic>;
           return GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailClassScreenStudent(classData: classData), // TargetScreen là màn hình bạn muốn chuyển đến
-                ),
+              Navigator.of(context, rootNavigator: true).pushNamed(
+                '/class-detail-student',
+                arguments: classData
               );
-              // Navigator.pushNamed(
-              //   context,
-              //   '/class-detail-student',
-              //   arguments: classData,
-              // );
             },
             child: Card (
               color: Colors.blue[100],
@@ -364,11 +348,22 @@ class _HomeScreenState extends State<HomeScreenStudent> {
             ),
             ListTile(
               title: const Text('Thông tin cá nhân'),
-              onTap: () {},
+              onTap: () {
+
+              },
             ),
             ListTile(
               title: const Text('Đăng xuất'),
-              onTap: _logout,
+              onTap: (){
+                HiveService().clearBox();
+                if (!mounted) return;
+                // Navigator.pushNamed(context, '/login');
+                Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+                  "/login",
+                      (Route<dynamic> route) => false,
+                );
+
+              },
             ),
           ],
         ),

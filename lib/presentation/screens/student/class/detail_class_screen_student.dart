@@ -33,7 +33,7 @@ class DetailClassScreenStudent extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 16.0,
           mainAxisSpacing: 20.0,
-          childAspectRatio: 1.5,
+          childAspectRatio: 1,
           children: [
             _ClassInfoButton(),
             _ViewMaterialsButton(classData: classData),
