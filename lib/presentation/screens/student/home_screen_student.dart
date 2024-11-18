@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
+import 'package:ptuddnt/core/utils/token.dart';
+import 'package:ptuddnt/presentation/screens/student/class/detail_class_screen_student.dart';
 
 class HomeScreenStudent extends StatefulWidget {
   const HomeScreenStudent({super.key});
@@ -8,28 +12,30 @@ class HomeScreenStudent extends StatefulWidget {
   @override
   State<HomeScreenStudent> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreenStudent> {
-  final GlobalKey<ScaffoldState> _scaffoldKey =
-  GlobalKey<ScaffoldState>();
-  List<dynamic> _classList = [];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
+  List<dynamic> _classList = [];
   List<dynamic> _classListShow = [];
   bool _isLoading = true;
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
-  late String avata;
-
+  String avata = '';
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _classListHidden.addListener(() {
-      _updateVisibleClasses();
-    });
+    _initializeData();
+    _classListHidden.addListener(_updateVisibleClasses);
   }
-
+  Future<void> _initializeData() async {
+    final classList = HiveService().getData('classList') ?? [];
+    if( classList == []) {
+      await fetchClassList();
+    }
+    await _loadUserData();
+    _updateVisibleClasses();
+  }
   void _updateVisibleClasses() {
     setState(() {
       _classListShow = _classList
@@ -37,19 +43,50 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           .toList();
     });
   }
+  Future<void> fetchClassList() async {
+    try {
+      final userData = HiveService().getData('userData');
+      final accountId = userData?['id']?.toString() ?? '';
+      if (accountId.isEmpty) {
+        setState(() {
+          _errorMessage = 'Không tìm thấy thông tin tài khoản.';
+        });
+        return;
+      }
 
-  Future<void> _logout() async {
-    HiveService().clearBox();
-    if (!mounted) return;
-    Navigator.pushNamed(context, '/login');
+      final res = await ApiClass().post('/get_class_list', {
+        "token": Token().get(),
+        "role": "STUDENT",
+        "account_id": accountId,
+      });
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final classList = data['data'];
+        await HiveService().saveData('classList', classList);
+        setState(() {
+          _classList = classList;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Lỗi khi lấy danh sách lớp học.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Đã xảy ra lỗi: $e';
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
     try {
       final userData = HiveService().getData('userData');
-
+      final classList = HiveService().getData('classList') ?? [];
       if (userData != null) {
-        List<dynamic> classList = userData['class_list'] ?? [];
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
@@ -57,31 +94,35 @@ class _HomeScreenState extends State<HomeScreenStudent> {
 
         setState(() {
           _classList = classList;
-          _isLoading = false;
           hoTen = '$ho $ten';
           avata = avatarURL;
           userName = userNamekkk;
+          _isLoading = false;
         });
-        if (classList.isEmpty){
+
+        if (classList.isEmpty) {
           setState(() {
-            _errorMessage = 'Không có dữ liệu lớp học';
+            _errorMessage = 'Không có dữ liệu lớp học.';
           });
         }
-        _updateVisibleClasses();
       } else {
         setState(() {
+          _errorMessage = 'Không tìm thấy thông tin người dùng.';
           _isLoading = false;
-          _errorMessage = 'Đã xảy ra lỗi';
         });
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
         _errorMessage = 'Đã xảy ra lỗi: $e';
+        _isLoading = false;
       });
     }
   }
-
+  Future<void> _logout() async {
+    HiveService().clearBox();
+    if (!mounted) return;
+    Navigator.pushNamed(context, '/login');
+  }
   void _showClassManagementDialog() {
     showDialog(
       context: context,
@@ -141,7 +182,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       },
     );
   }
-
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -172,7 +212,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,16 +247,23 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           : ListView.builder(
         itemCount: _classListShow.length,
         itemBuilder: (context, index) {
-          final classData = _classListShow[index];
+          final classData = _classListShow[index] as Map<dynamic, dynamic>;
           return GestureDetector(
             onTap: () {
-              Navigator.pushNamed(
+              Navigator.push(
                 context,
-                '/class-detail-student',
-                arguments: classData,
+                MaterialPageRoute(
+                  builder: (context) => DetailClassScreenStudent(classData: classData), // TargetScreen là màn hình bạn muốn chuyển đến
+                ),
               );
+              // Navigator.pushNamed(
+              //   context,
+              //   '/class-detail-student',
+              //   arguments: classData,
+              // );
             },
-            child: Card(
+            child: Card (
+              color: Colors.blue[100],
               elevation: 4,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
@@ -232,6 +278,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                       classData['class_name'],
                       style: const TextStyle(
                         fontSize: 18,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -240,7 +287,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                       'Loại lớp: ${classData['class_type']}',
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -248,7 +294,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                       'Giảng viên: ${classData['lecturer_name']}',
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -256,7 +301,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                       'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
                       ),
                     ),
                   ],

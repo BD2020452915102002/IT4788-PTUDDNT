@@ -5,7 +5,7 @@ import 'package:ptuddnt/presentation/screens/lecturer/class/assignment/assignmen
 import 'matetial/mater.dart';
 
 class DetailClassScreenLec extends StatefulWidget {
-    final Map<String, dynamic> classData;
+    final Map<dynamic, dynamic> classData;
     const DetailClassScreenLec({super.key, required this.classData});
 
     @override

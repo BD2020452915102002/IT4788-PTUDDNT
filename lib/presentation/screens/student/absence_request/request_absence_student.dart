@@ -7,12 +7,12 @@ import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:intl/intl.dart';
 
 class LeaveRequestScreen extends StatefulWidget {
-  final Map<String, dynamic> classData;
+  final Map<dynamic, dynamic> classData;
 
-  const LeaveRequestScreen({Key? key, required this.classData}) : super(key: key);
+  const LeaveRequestScreen({super.key, required this.classData});
 
   @override
-  _LeaveRequestScreenState createState() => _LeaveRequestScreenState();
+  State<LeaveRequestScreen> createState() => _LeaveRequestScreenState();
 }
 
 class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
