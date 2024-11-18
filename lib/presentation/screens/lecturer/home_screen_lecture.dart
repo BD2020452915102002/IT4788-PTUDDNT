@@ -33,6 +33,10 @@ class _HomeScreenState extends State<HomeScreenLec> {
     if( classList.isEmpty ) {
       await fetchClassList();
     }
+    setState(() {
+      _classList = HiveService().getData('classList');
+      _isLoading = false;
+    });
     await _loadUserData();
     _updateVisibleClasses();
   }
@@ -64,10 +68,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
         final data = jsonDecode(res.body);
         final classList = data['data'];
         await HiveService().saveData('classList', classList);
-        setState(() {
-          _classList = classList;
-          _isLoading = false;
-        });
+
       } else {
         setState(() {
           _errorMessage = 'Lỗi khi lấy danh sách lớp học.';
@@ -198,7 +199,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
                   leading: const Icon(Icons.add),
                   title: const Text('Tạo lớp học'),
                   onTap: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(context, rootNavigator: true).pushNamed('/create-class-lecturer');
                   },
                 ),
               ],

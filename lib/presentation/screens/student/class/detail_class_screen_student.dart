@@ -38,7 +38,7 @@ class DetailClassScreenStudent extends StatelessWidget {
             _ClassInfoButton(),
             _ViewMaterialsButton(classData: classData),
             _AssignmentsButton(classData: classData),
-            _AttendanceButton(),
+            _AttendanceButton(classData: classData),
             _RequestLeaveButton(classId: classData['class_id']),
           ],
         ),
@@ -126,11 +126,17 @@ class _AssignmentsButton extends StatelessWidget {
 }
 
 class _AttendanceButton extends StatelessWidget {
+  final Map<dynamic, dynamic> classData;
+
+  const _AttendanceButton({required this.classData});
   @override
   Widget build(BuildContext context) {
+    final classId = classData['class_id'] as String;
+
     return ElevatedButton(
       onPressed: () {
         // Logic khi nhấn vào "Điểm danh"
+        Navigator.pushNamed(context, '/absent-record-student', arguments: classId);
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.check_circle, 'Điểm danh'),
