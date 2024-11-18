@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:ptuddnt/core/constants/colors.dart';
 import 'dart:convert';
-
+import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/config/api_class.dart';
+import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
+import 'package:ptuddnt/core/utils/token.dart';
 
 class HomeScreenLec extends StatefulWidget {
   const HomeScreenLec({super.key});
@@ -12,26 +13,29 @@ class HomeScreenLec extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreenLec> {
-  final GlobalKey<ScaffoldState> _scaffoldKey =
-      GlobalKey<ScaffoldState>();
-  List<dynamic> _classList = [];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
+  List<dynamic> _classList = [];
   List<dynamic> _classListShow = [];
   bool _isLoading = true;
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
-  late String avata;
-
+  String avatar = '';
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _classListHidden.addListener(() {
-      _updateVisibleClasses();
-    });
+    _initializeData();
+    _classListHidden.addListener(_updateVisibleClasses);
   }
-
+  Future<void> _initializeData() async {
+    final classList = HiveService().getData('classList') ?? [];
+    if( classList.isEmpty ) {
+      await fetchClassList();
+    }
+    await _loadUserData();
+    _updateVisibleClasses();
+  }
   void _updateVisibleClasses() {
     setState(() {
       _classListShow = _classList
@@ -39,42 +43,78 @@ class _HomeScreenState extends State<HomeScreenLec> {
           .toList();
     });
   }
+  Future<void> fetchClassList() async {
+    try {
+      final userData = HiveService().getData('userData');
+      final accountId = userData?['id']?.toString() ?? '';
+      if (accountId.isEmpty) {
+        setState(() {
+          _errorMessage = 'Không tìm thấy thông tin tài khoản.';
+        });
+        return;
+      }
 
-  Future<void> _logout() async {
-    HiveService().clearBox();
-    if (!mounted) return;
-    Navigator.pushNamed(context, '/login');
+      final res = await ApiClass().post('/get_class_list', {
+        "token": Token().get(),
+        "role": "LECTURER",
+        "account_id": accountId,
+      });
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final classList = data['data'];
+        await HiveService().saveData('classList', classList);
+        setState(() {
+          _classList = classList;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Lỗi khi lấy danh sách lớp học.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Đã xảy ra lỗi: $e';
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
     try {
       final userData = HiveService().getData('userData');
+      final classList = HiveService().getData('classList') ?? [];
       if (userData != null) {
-
-        List<dynamic> classList = userData['class_list'] ?? [];
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
-        String userNamekkk = userData['user_name'] ?? '';
+        String userNamekkk = userData['name'] ?? '';
 
         setState(() {
           _classList = classList;
-          _isLoading = false;
           hoTen = '$ho $ten';
-          avata = avatarURL;
+          avatar = avatarURL;
           userName = userNamekkk;
+          _isLoading = false;
         });
-        _updateVisibleClasses();
+
+        if (classList.isEmpty) {
+          setState(() {
+            _errorMessage = 'Không có dữ liệu lớp học.';
+          });
+        }
       } else {
         setState(() {
+          _errorMessage = 'Không tìm thấy thông tin người dùng.';
           _isLoading = false;
-          _errorMessage = 'Không có dữ liệu lớp học';
         });
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
         _errorMessage = 'Đã xảy ra lỗi: $e';
+        _isLoading = false;
       });
     }
   }
@@ -84,38 +124,38 @@ class _HomeScreenState extends State<HomeScreenLec> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Quản lý lớp giảng dạy'),
+          title: const Text('Quản lý lớp học'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: _classList.isNotEmpty ? ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _classList.length,
-                  itemBuilder: (context, index) {
-                    final classData = _classList[index];
-                    final isHidden = _classListHidden.value.any(
-                        (item) => item['class_id'] == classData['class_id']);
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: _classList.isNotEmpty ? ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _classList.length,
+                    itemBuilder: (context, index) {
+                      final classData = _classList[index];
+                      final isHidden = _classListHidden.value.any(
+                              (item) => item['class_id'] == classData['class_id']);
 
-                    return CheckboxListTile(
-                      title: Text(classData['class_name']),
-                      value: !isHidden,
-                      onChanged: (value) {
-                        setState(() {
-                          if (value == true) {
-                            _classListHidden.value =
-                                List.from(_classListHidden.value)
-                                  ..remove(classData);
-                          } else {
-                            _classListHidden.value =
-                                List.from(_classListHidden.value)
-                                  ..add(classData);
-                          }
-                        });
-                      },
-                    );
-                  },
-                ): const Text('Oh no!')
+                      return CheckboxListTile(
+                        title: Text(classData['class_name']),
+                        value: !isHidden,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              _classListHidden.value =
+                              List.from(_classListHidden.value)
+                                ..remove(classData);
+                            } else {
+                              _classListHidden.value =
+                              List.from(_classListHidden.value)
+                                ..add(classData);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ): const Text('Oh no!')
               );
             },
           ),
@@ -138,7 +178,6 @@ class _HomeScreenState extends State<HomeScreenLec> {
       },
     );
   }
-
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -151,13 +190,13 @@ class _HomeScreenState extends State<HomeScreenLec> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.settings),
-                  title: const Text('Quản lý lớp giảng dạy'),
+                  title: const Text('Quản lý lớp học'),
                   onTap: _showClassManagementDialog,
                 ),
                 const SizedBox(height: 40),
                 ListTile(
                   leading: const Icon(Icons.add),
-                  title: const Text('Tạo lớp học mới'),
+                  title: const Text('Tạo lớp học'),
                   onTap: () {
                     Navigator.of(context).pop();
                   },
@@ -169,11 +208,11 @@ class _HomeScreenState extends State<HomeScreenLec> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
@@ -201,74 +240,91 @@ class _HomeScreenState extends State<HomeScreenLec> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage.isNotEmpty
-              ? Center(child: Text(_errorMessage))
-              : ListView.builder(
+          ? Center(child: Text(_errorMessage))
+          : ListView.builder(
         itemCount: _classListShow.length,
         itemBuilder: (context, index) {
-          final classData = _classListShow[index];
+          final classData = _classListShow[index] as Map<dynamic, dynamic>;
           return GestureDetector(
-            onTap: () async {
-              // final prefs = await SharedPreferences.getInstance();
-              // String? token = prefs.getString('token');
-              print("classData: $classData");
-              String attached_code = classData['attached_code'] ?? '';
-              Navigator.pushNamed(
-                context,
-                '/class-detail-lecture',
-                arguments:   classData, // Bao gồm id của lớp học
-                  // 'token': token,         // Truyền token
-
-              );
-              print ("classData: $classData");
-              // print("token: $token");
-
-            },
-            child: Card(
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              onTap: () {
+                Navigator.of(context, rootNavigator: true).pushNamed(
+                    '/class-detail-lecture',
+                    arguments: classData
+                );
+              },
+              child: Card(
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      classData['class_name'],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            classData['class_name'],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Loại lớp: ${classData['class_type']}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                    Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(12),
+                          bottomRight: Radius.circular(12),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Giảng viên: ${classData['lecturer_name']}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Text(
+                            'Loại lớp: ${classData['class_type']}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Giảng viên: ${classData['lecturer_name']}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
+              )
+
           );
         },
       ),
@@ -301,12 +357,12 @@ class _HomeScreenState extends State<HomeScreenLec> {
                         ),
                       ),
                     ),
-                     Column(
+                    Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Text(hoTen, style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold
                         ),),
                         Text(userName),
                       ],
@@ -317,11 +373,25 @@ class _HomeScreenState extends State<HomeScreenLec> {
             ),
             ListTile(
               title: const Text('Thông tin cá nhân'),
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context, rootNavigator: true).pushNamed(
+                    "/information-student",
+                    arguments: HiveService().getData('userData')['id'].toString()
+                );
+              },
             ),
             ListTile(
               title: const Text('Đăng xuất'),
-              onTap: _logout,
+              onTap: (){
+                HiveService().clearBox();
+                if (!mounted) return;
+                // Navigator.pushNamed(context, '/login');
+                Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+                  "/login",
+                      (Route<dynamic> route) => false,
+                );
+
+              },
             ),
           ],
         ),

@@ -4,8 +4,6 @@ import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
-import 'package:ptuddnt/presentation/screens/login_screen.dart';
-import 'package:ptuddnt/presentation/screens/student/class/detail_class_screen_student.dart';
 
 class HomeScreenStudent extends StatefulWidget {
   const HomeScreenStudent({super.key});
@@ -31,7 +29,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   }
   Future<void> _initializeData() async {
     final classList = HiveService().getData('classList') ?? [];
-    print('vao day dcm $classList');
     if( classList.isEmpty ) {
       await fetchClassList();
     }
@@ -46,10 +43,8 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     });
   }
   Future<void> fetchClassList() async {
-    print('vao day fetch list');
     try {
       final userData = HiveService().getData('userData');
-      print('vao day $userData');
       final accountId = userData?['id']?.toString() ?? '';
       if (accountId.isEmpty) {
         setState(() {
@@ -216,6 +211,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),

@@ -4,110 +4,15 @@ import 'package:ptuddnt/core/utils/token.dart';
 import 'package:ptuddnt/presentation/screens/lecturer/class/assignment/assignment.dart';
 import 'matetial/mater.dart';
 
-class DetailClassScreenLec extends StatefulWidget {
-    final Map<dynamic, dynamic> classData;
-    const DetailClassScreenLec({super.key, required this.classData});
+class DetailClassScreenLec extends StatelessWidget {
+  final Map<dynamic, dynamic> classData;
 
-    @override
-    State<DetailClassScreenLec> createState() => _DetailClassScreenLecState();
-}
-class _DetailClassScreenLecState extends State<DetailClassScreenLec> {
-    late String token = '';
-    late final dynamic classId;
-
-    @override
-    void initState() {
-      super.initState();
-      classId = widget.classData['class_id'] ?? 'Unknown';
-      _loadToken();
-    }
-    Future<void> _loadToken() async {
-      setState(() {
-        token = Token().get() ?? 'Token not found';
-      });
-      print("Class ID: ${classId}");
-      print("Token: $token");
-    }
-
-    Widget _getButtonContent(int index) {
-    List<Map<String, dynamic>> buttonData = [
-      {
-        'icon': Icons.people,
-        'text': 'Danh sách sinh viên',
-      },
-      {
-        'icon': Icons.share,
-        'text': 'Tài liệu chia sẻ',
-      },
-      {
-        'icon': Icons.grade,
-        'text': 'Nhập điểm',
-      },
-      {
-        'icon': Icons.check_circle,
-        'text': 'Điểm danh',
-      },
-      {
-        'icon': Icons.assignment,
-        'text': 'Tạo bài tập / khảo sát',
-      },
-    ];
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          buttonData[index]['icon'],
-          color: AppColors.primary,
-          size: 30,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          buttonData[index]['text'],
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _handleButtonPress(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        print("Danh sách sinh viên pressed");
-        break;
-      case 1:
-        print("Tài liệu chia sẻ pressed");
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MaterialScreen(token: token, classId: classId),
-          ),
-        );
-        break;
-      case 2:
-        print("Nhập điểm pressed");
-        break;
-      case 3:
-        print("Điểm danh pressed");
-        break;
-      case 4:
-        print("Tạo bài tập / khảo sát pressed");
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AssignmentPage(token: token, classId: classId),
-          ),
-        );
-        break;
-    }
-  }
+  const DetailClassScreenLec({super.key, required this.classData});
 
   @override
   Widget build(BuildContext context) {
+    String token = Token().get();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -121,38 +26,146 @@ class _DetailClassScreenLecState extends State<DetailClassScreenLec> {
         ),
         centerTitle: true,
         title: Text(
-          widget.classData['class_name'],
+          classData['class_name'],
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: AppColors.primary,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1,
-            crossAxisSpacing: 16.0,
-            mainAxisSpacing: 20.0,
-            childAspectRatio: 4,
-          ),
-          itemCount: 5,
-          itemBuilder: (context, index) {
-            return ElevatedButton(
-              onPressed: () => _handleButtonPress(context, index),
-              style: ElevatedButton.styleFrom(
-
-                backgroundColor: Colors.yellow[50],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 3,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-              ),
-              child: _getButtonContent(index),
-            );
-          },
+        child: GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16.0,
+          mainAxisSpacing: 20.0,
+          childAspectRatio: 1,
+          children: [
+            _ClassInfoButton(),
+            _ViewMaterialsButton(classData: classData, token: token),
+            _GradeButton(classData: classData, token: token),
+            _AttendanceButton(),
+            _CreateAssignmentButton(classData: classData, token: token),
+          ],
         ),
       ),
     );
   }
 }
+
+class _ClassInfoButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+      },
+      style: _buttonStyle,
+      child: _getButtonContent(Icons.class_, 'Thông tin lớp dạy'),
+    );
+  }
+}
+
+class _ViewMaterialsButton extends StatelessWidget {
+  final Map<dynamic, dynamic> classData;
+  final String token;
+
+  const _ViewMaterialsButton({required this.classData, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MaterialScreen(token: token, classId: classData['class_id']),
+          ),
+        );
+      },
+      style: _buttonStyle,
+      child: _getButtonContent(Icons.share, 'Tài liệu chia sẻ'),
+    );
+  }
+}
+
+class _GradeButton extends StatelessWidget {
+  final Map<dynamic, dynamic> classData;
+  final String token;
+
+  const _GradeButton({required this.classData, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+      },
+      style: _buttonStyle,
+      child: _getButtonContent(Icons.grade, 'Nhập điểm'),
+    );
+  }
+}
+
+class _AttendanceButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+      },
+      style: _buttonStyle,
+      child: _getButtonContent(Icons.check_circle, 'Điểm danh'),
+    );
+  }
+}
+
+class _CreateAssignmentButton extends StatelessWidget {
+  final Map<dynamic, dynamic> classData;
+  final String token;
+
+  const _CreateAssignmentButton({required this.classData, required this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AssignmentPage(token: token, classId: classData['class_id']),
+          ),
+        );
+      },
+      style: _buttonStyle,
+      child: _getButtonContent(Icons.assignment, 'Tạo bài tập / khảo sát'),
+    );
+  }
+}
+
+Widget _getButtonContent(IconData icon, String text) {
+  return Expanded(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: AppColors.primary, size: 30),
+        const SizedBox(height: 8),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    ),
+  );
+}
+
+final _buttonStyle = ElevatedButton.styleFrom(
+  backgroundColor: Colors.yellow[50],
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12),
+  ),
+  elevation: 3,
+  padding: const EdgeInsets.all(16),
+);

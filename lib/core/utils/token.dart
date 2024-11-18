@@ -1,6 +1,6 @@
 import 'package:ptuddnt/core/utils/hive.dart';
 class Token {
-  String? get() {
+  String get() {
     return HiveService().getData('token');
   }
   Future<void> save(String token) async {

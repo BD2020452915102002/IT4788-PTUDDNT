@@ -52,7 +52,6 @@ class _ClassInfoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        // Logic khi nhấn vào "Thông tin lớp học"
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.class_, 'Thông tin lớp học'),
