@@ -6,7 +6,7 @@ import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
 class ListAssignment extends StatefulWidget {
-  final Map<String, dynamic> classData;
+  final Map<dynamic, dynamic> classData;
 
   const ListAssignment({super.key, required this.classData});
 
@@ -32,11 +32,11 @@ class _ListAssignmentState extends State<ListAssignment>
 
   Future<void> fetchAssignments() async {
     final response1 = await ApiClass().post('/get_all_surveys', {
-      "token": await Token().get(),
+      "token":  Token().get(),
       "class_id": widget.classData['class_id']
     });
     final response2 = await ApiClass().post('/get_student_assignments', {
-      "token": await Token().get(),
+      "token":  Token().get(),
     });
     List<Map<String, dynamic>> combinedData = [];
     if (response1.statusCode == 200 && response2.statusCode == 200) {

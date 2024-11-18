@@ -4,9 +4,8 @@ import 'package:ptuddnt/core/utils/token.dart';
 import 'about_material/list_material.dart';
 
 class DetailClassScreenStudent extends StatelessWidget {
-  final Map<String, dynamic> classData;
+  final Map<dynamic, dynamic> classData;
   const DetailClassScreenStudent({super.key, required this.classData});
-
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +62,7 @@ class _ClassInfoButton extends StatelessWidget {
 
 class _ViewMaterialsButton extends StatefulWidget {
 
-  final Map<String, dynamic> classData;
+  final Map<dynamic, dynamic> classData;
   const _ViewMaterialsButton({required this.classData});
 
   @override
@@ -107,7 +106,7 @@ class _ViewMaterialsButtonState extends State<_ViewMaterialsButton> {
 }
 
 class _AssignmentsButton extends StatelessWidget {
-  final Map<String, dynamic> classData;
+  final Map<dynamic, dynamic> classData;
 
   const _AssignmentsButton({required this.classData});
 
@@ -162,23 +161,30 @@ class _RequestLeaveButton extends StatelessWidget {
 }
 
 Widget _getButtonContent(IconData icon, String text) {
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Icon(icon, color: AppColors.primary, size: 30),
-      const SizedBox(height: 8),
-      Text(
-        text,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
+  return Expanded(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: AppColors.primary, size: 30),
+        const SizedBox(height: 8),
+        Flexible(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        textAlign: TextAlign.center,
-      ),
-    ],
+      ],
+    ),
   );
 }
+
 
 final _buttonStyle = ElevatedButton.styleFrom(
   backgroundColor: Colors.yellow[50],
