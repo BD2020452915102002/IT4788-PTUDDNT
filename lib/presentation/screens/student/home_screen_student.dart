@@ -45,6 +45,19 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           .toList();
     });
   }
+  String convertToDirectDownloadLink(String driveLink) {
+    print('Khang ${driveLink}');
+    final regex = RegExp(r'file/d/([a-zA-Z0-9_-]+)');
+    final match = regex.firstMatch(driveLink);
+
+    if (match != null && match.groupCount > 0) {
+      final fileId = match.group(1);
+      return 'https://drive.google.com/uc?export=view&id=$fileId';
+    } else {
+      throw ArgumentError('Invalid Google Drive link format');
+    }
+  }
+
   Future<void> fetchClassList() async {
     print('vao day fetch list');
     try {
@@ -94,7 +107,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
-        String userNamekkk = userData['name'] ?? '';
+        String userNamekkk = userData['email'] ?? '';
 
         setState(() {
           _classList = classList;
@@ -103,7 +116,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           userName = userNamekkk;
           _isLoading = false;
         });
-
         if (classList.isEmpty) {
           setState(() {
             _errorMessage = 'Không có dữ liệu lớp học.';
@@ -352,12 +364,14 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                       width: 50,
                       height: 50,
                       decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         backgroundColor: Colors.blue,
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        ),
+                        backgroundImage:  avatar != ''
+                            ? NetworkImage(convertToDirectDownloadLink(avatar))
+                            : null,
+                        child:  avatar == ''
+                            ? const Icon(Icons.person, size: 30)
+                            : null,
                       ),
                     ),
                     Column(
