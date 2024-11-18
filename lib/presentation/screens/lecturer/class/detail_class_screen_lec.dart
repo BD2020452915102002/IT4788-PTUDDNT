@@ -39,7 +39,8 @@ class DetailClassScreenLec extends StatelessWidget {
           mainAxisSpacing: 20.0,
           childAspectRatio: 1,
           children: [
-            _ClassInfoButton(),
+            _ClassInfoButton(classId: classData['class_id']),
+            _AsenceButton(classId: classData['class_id']),
             _ViewMaterialsButton(classData: classData, token: token),
             _GradeButton(classData: classData, token: token),
             _AttendanceButton(classData: classData, token: token),
@@ -52,13 +53,38 @@ class DetailClassScreenLec extends StatelessWidget {
 }
 
 class _ClassInfoButton extends StatelessWidget {
+  final String classId;
+  const _ClassInfoButton({required this.classId});
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
+        Navigator.pushNamed(
+            context,
+            '/class-info',
+            arguments: classId,
+        );
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.class_, 'Thông tin lớp dạy'),
+    );
+  }
+}
+class _AsenceButton extends StatelessWidget {
+  final String classId;
+  const _AsenceButton({required this.classId});
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.pushNamed(
+            context,
+            '/.....',
+            arguments: classId,
+        );
+      },
+      style: _buttonStyle,
+      child: _getButtonContent(Icons.class_, 'Quản lý yêu cầu'),
     );
   }
 }
