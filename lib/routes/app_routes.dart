@@ -8,7 +8,7 @@ import 'package:ptuddnt/presentation/screens/splash_screen.dart';
 import 'package:ptuddnt/presentation/screens/login_screen.dart';
 import 'package:ptuddnt/presentation/screens/register_screen.dart';
 import 'package:ptuddnt/presentation/screens/student/absence_request/request_absence_student.dart';
-import 'package:ptuddnt/presentation/screens/student/home_screen_layout.dart';
+import 'package:ptuddnt/presentation/screens/student/home_screen_layout_stu.dart';
 import 'package:ptuddnt/presentation/screens/student/information_student_screen.dart';
 import '../presentation/screens/lecturer/register_class_screen.dart';
 import '../presentation/screens/lecturer/attendance_screen_lecture.dart';

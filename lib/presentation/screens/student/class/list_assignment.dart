@@ -91,6 +91,7 @@ class _ListAssignmentState extends State<ListAssignment>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         toolbarHeight: 60,
         centerTitle: true,

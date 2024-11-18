@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert'; 
 import 'package:ptuddnt/core/config/api_class.dart';
+import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
 class NotifycationScreen extends StatefulWidget {
@@ -20,9 +23,18 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
   @override
   void initState() {
     super.initState();
-    fetchNotifications();
+    _initializeData();
   }
-
+  Future<void> _initializeData() async {
+    final countNotify = HiveService().getData('danhsachthongbao');
+    if (countNotify == null) {
+      await fetchNotifications();
+    }
+    setState(() {
+      notifications = HiveService().getData('danhsachthongbao');
+      isLoading = false;
+    });
+  }
   Future<void> fetchNotifications() async {
     try {
       final response = await ApiClass().post('/get_notifications', {
@@ -33,10 +45,7 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() {
-          notifications = data['data'];
-          isLoading = false;
-        });
+        await HiveService().saveData('danhsachthongbao', data['data']);
       } else {
         throw Exception('Failed to load notifications');
       }
@@ -47,7 +56,10 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
       print('Error: $e');
     }
   }
-
+  String format(String deadline) {
+    final deadlineDate = DateTime.parse(deadline);
+    return DateFormat('dd-MM-yyyy, HH:mm').format(deadlineDate);
+  }
   // Hàm đánh dấu tất cả thông báo là đã đọc
   Future<void> markAllAsRead() async {
     final notificationIds = notifications.map((notification) => notification['id'].toString()).toList();
@@ -88,12 +100,14 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: const Text('Thông báo', style: TextStyle(color: Colors.white),),
         centerTitle: true,
+        backgroundColor: AppColors.primary ,
         actions: [
           IconButton(
-            icon: const Icon(Icons.mark_email_read),
+            icon: const Icon(Icons.mark_email_read , color: Colors.white,),
             onPressed: () async {
               await markAllAsRead();
             },
@@ -106,23 +120,27 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
         itemCount: notifications.length,
         itemBuilder: (context, index) {
           final notification = notifications[index];
-          return ListTile(
-            leading: const Icon(Icons.notifications),
-            title: Text(notification['message']),
-            subtitle: Text(notification['sent_time']),
-            trailing: Text(
-              notification['status'],
-              style: TextStyle(
-                color: notification['status'] == 'UNREAD' ? Colors.red : Colors.green,
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: ListTile(
+              leading: const Icon(Icons.notifications),
+              title: Text(notification['message']),
+              subtitle: Text(format(notification['sent_time'])),
+              trailing: Text(
+                notification['status'],
+                style: TextStyle(
+                  color: notification['status'] == 'UNREAD' ? Colors.red : Colors.green,
+                ),
               ),
+              tileColor: notification['status'] == 'UNREAD' ? Colors.orange[50] : Colors.transparent,
+              onTap: () async {
+                // Đánh dấu một thông báo là đã đọc
+                await markSingleAsRead(notification['id'].toString());
+              },
             ),
-            onTap: () async {
-              // Đánh dấu một thông báo là đã đọc
-              await markSingleAsRead(notification['id'].toString());
-            },
           );
         },
-      ),
+      )
     );
   }
 }

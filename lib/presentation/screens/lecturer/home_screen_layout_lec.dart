@@ -5,7 +5,7 @@ import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
-import 'package:ptuddnt/presentation/screens/Chat.dart';
+import 'package:ptuddnt/presentation/screens/chat.dart';
 import 'package:ptuddnt/presentation/screens/lecturer/home_screen_lecture.dart';
 import 'package:ptuddnt/presentation/screens/notifycation_screen.dart';
 
