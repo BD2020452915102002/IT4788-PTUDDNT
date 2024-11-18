@@ -120,12 +120,6 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                             ),
                           ),
                           Text(
-                            'SĐT: ${userData['soDienThoai'] ?? '0987654321'}',
-                            style: const TextStyle(
-                              color: Colors.blue,
-                            ),
-                          ),
-                          Text(
                             'Email: ${userData['email'] ?? 'Không có'}',
                             style: const TextStyle(
                               color: Colors.blue,
@@ -140,73 +134,34 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 30),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 color: Color(0xFFFBF8EF),
                 borderRadius: BorderRadius.circular(20),
               ),
-              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.only(left: 20, top: 20, right: 20, bottom: 20),
+              //padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Mã sinh viên: ${userData['id'] ?? 'Không có'}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    'Họ tên: ${userName}',
+                    style: const TextStyle(fontSize: 18),
+                    ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Id sinh viên: ${userData['id'] ?? 'Không có'}',
+                    style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Ngày sinh: ${userData['ngaySinh'] ?? '01/01/2000'}',
-                    style: const TextStyle(fontSize: 16),
+                    'Email: ${userData['email'] ?? 'Không có'}',
+                    style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    'Email cá nhân: ${userData['emailCaNhan'] ?? 'Sv1510@gmail.com'}',
-                    style: const TextStyle(color: Colors.blue, fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Số điện thoại: ${userData['soDienThoai'] ?? '0987654321'}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Trường: ${userData['khoaVien'] ?? 'Công nghệ thông tin & Truyền thông'}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Khoa/Viện: ${userData['khoaVien'] ?? 'Khoa học máy tính'}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Khóa: ${userData['he'] ?? 'K66'}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Lớp: ${userData['lop'] ?? 'IT1-04'}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  // if (selectedImage != null)
-                  //   Padding(
-                  //     padding: const EdgeInsets.only(top: 10),
-                  //     child: Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Text('Ảnh đã chọn:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  //         SizedBox(height: 10),
-                  //         Image.file(
-                  //           selectedImage!,
-                  //           width: 100,
-                  //           height: 100,
-                  //         ),
-                  //         Text('Đường dẫn: ${selectedImage!.path}', style: TextStyle(color: Colors.grey)),
-                  //       ],
-                  //     ),
-                  //   ),
                 ],
               ),
             ),

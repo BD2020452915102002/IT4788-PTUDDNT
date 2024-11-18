@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
-  String avata = '';
+  String avatar = '';
   @override
   void initState() {
     super.initState();
@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         setState(() {
           _classList = classList;
           hoTen = '$ho $ten';
-          avata = avatarURL;
+          avatar = avatarURL;
           userName = userNamekkk;
           _isLoading = false;
         });
@@ -255,51 +255,79 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 arguments: classData
               );
             },
-            child: Card (
-              color: Colors.blue[100],
+            child: Card(
               elevation: 4,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      classData['class_name'],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.orange[50],
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Loại lớp: ${classData['class_type']}',
-                      style: const TextStyle(
-                        fontSize: 14,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          classData['class_name'],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Giảng viên: ${classData['lecturer_name']}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(
+                          'Loại lớp: ${classData['class_type']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Giảng viên: ${classData['lecturer_name']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
+            )
+
           );
         },
       ),
@@ -349,7 +377,10 @@ class _HomeScreenState extends State<HomeScreenStudent> {
             ListTile(
               title: const Text('Thông tin cá nhân'),
               onTap: () {
-
+                Navigator.of(context, rootNavigator: true).pushNamed(
+                  "/information-student",
+                  arguments: HiveService().getData('userData')['id'].toString()
+                );
               },
             ),
             ListTile(
