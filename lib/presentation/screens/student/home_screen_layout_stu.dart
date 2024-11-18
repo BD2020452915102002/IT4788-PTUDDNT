@@ -9,6 +9,7 @@ import 'package:ptuddnt/presentation/screens/chat.dart';
 import 'package:ptuddnt/presentation/screens/lecturer/home_screen_lecture.dart';
 import 'package:ptuddnt/presentation/screens/notifycation_screen.dart';
 import 'package:ptuddnt/presentation/screens/student/class/list_assignment.dart';
+import 'package:ptuddnt/presentation/screens/student/home_screen_student.dart';
 
 class HomeStudent extends StatelessWidget {
   const HomeStudent({super.key});
@@ -18,7 +19,7 @@ class HomeStudent extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true),
-      home: const Navigation(),
+      home:  Navigation(),
     );
   }
 }
@@ -153,7 +154,7 @@ class _NavigationState extends State<Navigation> {
         ],
       ),
       body: <Widget>[
-        const HomeScreenLec(),
+        const HomeScreenStudent(),
         ListAssignment(),
         const ChatScreen(),
         NotifycationScreen(fetchUnreadNotificationsCount: setCount)

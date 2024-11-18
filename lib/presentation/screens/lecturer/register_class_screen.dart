@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import '../../../core/config/api_class.dart';
 import '../../../core/constants/colors.dart';
 import 'dart:convert';
 import '../../../core/utils/token.dart';
+
 
 class RegisterClassLecturer extends StatefulWidget {
   const RegisterClassLecturer({super.key});
@@ -26,6 +28,23 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
   // Dropdown selections
   String? _classType;
   final List<String> _classTypes = ["LT", "BT", "LT_BT"];
+  Future<void> fetchClassList() async {
+
+      final userData = HiveService().getData('userData');
+      final accountId = userData?['id']?.toString() ?? '';
+      final res = await ApiClass().post('/get_class_list', {
+        "token": Token().get(),
+        "role": "LECTURER",
+        "account_id": accountId,
+      });
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final classList = data['data'];
+        await HiveService().saveData('classList', classList);
+      }
+
+  }
 
   Future<void> _submitData() async {
 
@@ -44,15 +63,15 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
         final response = await ApiClass().post('/create_class', data);
 
         if (response.statusCode == 200) {
+          fetchClassList();
+          final classList = HiveService().getData('classList');
+          print('duc $classList');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Registration successful!')),
           );
+
         } else {
-          Map<String, dynamic> responseData = json.decode(response.body);
-          String errorMessage = responseData["data"] ?? 'Something went wrong ${responseData["meta"]}';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed: ${errorMessage}')),
-          );
+          showError(response);
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,6 +81,25 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
     }
   }
 
+  Future<void> showError(response) async {
+    if(response.statusCode == 400){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Bad Request!")));
+    } else{
+      final data = json.decode(response.body);
+      final errorMessage = data['meta']['message'];
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+
+      if (data['meta']['code'] == 9998) {
+        await _logout();
+      }
+    }
+  }
+
+  Future<void> _logout() async {
+    HiveService().clearBox();
+    Navigator.pushNamed(context, '/login');
+  }
+
   Future<void> _getToken() async {
     _token = (await Token().get())!;
   }
@@ -69,6 +107,13 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
   @override
   void initState() {
     super.initState();
+    _getToken();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
     _getToken();
   }
 
