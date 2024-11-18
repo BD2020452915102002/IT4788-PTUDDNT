@@ -8,9 +8,10 @@ import 'package:ptuddnt/core/utils/token.dart';
 import 'package:ptuddnt/presentation/screens/chat.dart';
 import 'package:ptuddnt/presentation/screens/lecturer/home_screen_lecture.dart';
 import 'package:ptuddnt/presentation/screens/notifycation_screen.dart';
+import 'package:ptuddnt/presentation/screens/student/class/list_assignment.dart';
 
-class HomeLectuter extends StatelessWidget {
-  const HomeLectuter({super.key});
+class HomeStudent extends StatelessWidget {
+  const HomeStudent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,22 +32,24 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   int currentPageIndex = 0;
-  String unreadNotificationsCountXXX = '';
+  String unreadNotificationsCount = '';
 
   @override
   void initState() {
     super.initState();
     _initializeData();
   }
+
   Future<void> _initializeData() async {
     final countNotify = HiveService().getData('thongbao');
     if (countNotify == null) {
       await fetchUnreadNotificationsCount();
     }
     setState(() {
-      unreadNotificationsCountXXX = HiveService().getData('thongbao').toString();
+      unreadNotificationsCount = HiveService().getData('thongbao').toString();
     });
   }
+
   Future<void> fetchUnreadNotificationsCount() async {
     try {
       final response = await ApiClass()
@@ -72,7 +75,8 @@ class _NavigationState extends State<Navigation> {
         final unreadCount = data['data'];
         await HiveService().saveData('thongbao', unreadCount);
         setState(() {
-          unreadNotificationsCountXXX = HiveService().getData('thongbao').toString();
+          unreadNotificationsCount =
+              HiveService().getData('thongbao').toString();
         });
       } else {
         throw Exception('Không thể tải số thông báo chưa đọc');
@@ -94,14 +98,22 @@ class _NavigationState extends State<Navigation> {
         },
         indicatorColor: AppColors.primary,
         selectedIndex: currentPageIndex,
-        destinations:  <Widget>[
-          NavigationDestination(
+        destinations: <Widget>[
+          const NavigationDestination(
             selectedIcon: Icon(
               Icons.home,
               color: Colors.white,
             ),
             icon: Icon(Icons.home_outlined),
             label: 'Trang chủ',
+          ),
+          const NavigationDestination(
+            selectedIcon: Icon(
+              Icons.assignment,
+              color: Colors.white,
+            ),
+            icon: Icon(Icons.assignment_outlined),
+            label: 'Bài tập',
           ),
           NavigationDestination(
             icon: Badge(
@@ -118,31 +130,32 @@ class _NavigationState extends State<Navigation> {
             label: 'Tin nhắn',
           ),
           NavigationDestination(
-            icon: int.parse(unreadNotificationsCountXXX) == 0
+            icon: int.parse(unreadNotificationsCount) == 0
                 ? Icon(Icons.notifications_none)
                 : Badge(
-              label: Text(unreadNotificationsCountXXX),
-              child: const Icon(Icons.notifications_none),
-            ),
-            selectedIcon: int.parse(unreadNotificationsCountXXX) == 0
+                    label: Text(unreadNotificationsCount),
+                    child: const Icon(Icons.notifications_none),
+                  ),
+            selectedIcon: int.parse(unreadNotificationsCount) == 0
                 ? Icon(
-              Icons.notifications_sharp,
-              color: Colors.white,
-            )
+                    Icons.notifications_sharp,
+                    color: Colors.white,
+                  )
                 : Badge(
-              label: Text(unreadNotificationsCountXXX),
-              child: const Icon(
-                Icons.notifications_sharp,
-                color: Colors.white,
-              ),
-            ),
+                    label: Text(unreadNotificationsCount),
+                    child: const Icon(
+                      Icons.notifications_sharp,
+                      color: Colors.white,
+                    ),
+                  ),
             label: 'Thông báo',
           ),
         ],
       ),
       body: <Widget>[
-        HomeScreenLec(),
-        ChatScreen(),
+        const HomeScreenLec(),
+        ListAssignment(),
+        const ChatScreen(),
         NotifycationScreen(fetchUnreadNotificationsCount: setCount)
       ][currentPageIndex],
     );

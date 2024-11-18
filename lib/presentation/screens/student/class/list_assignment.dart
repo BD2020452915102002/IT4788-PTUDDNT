@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
 class ListAssignment extends StatefulWidget {
-  final Map<dynamic, dynamic> classData;
-
-  const ListAssignment({super.key, required this.classData});
+  const ListAssignment({super.key});
 
   @override
   State<ListAssignment> createState() => _ListAssignmentState();
@@ -27,39 +26,38 @@ class _ListAssignmentState extends State<ListAssignment>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    fetchAssignments();
+    _initializeData();
   }
+  Future<void> _initializeData() async {
+    final upcoming = HiveService().getData('chuahoanthanh');
+    final past = HiveService().getData('hethan');
+    final completed = HiveService().getData('hoanthanh');
+    print('vaodaykhoitao$upcoming');
+    final bool isFetch = (upcoming == null || upcoming.isEmpty) &&
+        (past == null || past.isEmpty) &&
+        (completed == null || completed.isEmpty);
+    print('vaodayis  ssss$isFetch');
 
+    if( isFetch ) {
+      await fetchAssignments();
+    }
+    setState(() {
+      upcomingAssignments = HiveService().getData('chuahoanthanh');
+      pastAssignments = HiveService().getData('hethan');
+      completedAssignments = HiveService().getData('hoanthanh');
+    });
+    isLoading = false;
+  }
   Future<void> fetchAssignments() async {
-    final response1 = await ApiClass().post('/get_all_surveys', {
-      "token":  Token().get(),
-      "class_id": widget.classData['class_id']
+    final response = await ApiClass().post('/get_student_assignments', {
+      "token": Token().get(),
     });
-    final response2 = await ApiClass().post('/get_student_assignments', {
-      "token":  Token().get(),
-    });
-    List<Map<String, dynamic>> combinedData = [];
-    if (response1.statusCode == 200 && response2.statusCode == 200) {
-      final data1 = json.decode(response1.body);
-      final data2 = json.decode(response1.body);
-      for (var assignment1 in data1['data']) {
-        var matchingAssignment = data2['data'].firstWhere(
-              (assignment2) => assignment2['title'] == assignment1['title'],
-          orElse: () => null,
-        );
-        if (matchingAssignment != null) {
-          combinedData.add({
-            ...assignment1,
-            'is_submitted': matchingAssignment['is_submitted'],
-          });
-        }
-      }
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
       setState(() {
-        final allAssignments = combinedData;
-        print(allAssignments);
+        final allAssignments = data['data'];
         final now = DateTime.now();
 
-        // Classify assignments by completion status
         completedAssignments = allAssignments
             .where((assignment) => assignment['is_submitted'] == true)
             .toList();
@@ -68,17 +66,18 @@ class _ListAssignmentState extends State<ListAssignment>
             .where((assignment) => assignment['is_submitted'] != true)
             .toList();
 
-        // Further classify not completed assignments by deadline
         upcomingAssignments = notCompletedAssignments
             .where((assignment) =>
-            DateTime.parse(assignment['deadline']).isAfter(now))
+                DateTime.parse(assignment['deadline']).isAfter(now))
             .toList();
 
         pastAssignments = notCompletedAssignments
             .where((assignment) =>
-            DateTime.parse(assignment['deadline']).isBefore(now))
+                DateTime.parse(assignment['deadline']).isBefore(now))
             .toList();
-
+        HiveService().saveData('hoanthanh', completedAssignments);
+        HiveService().saveData('chuahoanthanh', upcomingAssignments);
+        HiveService().saveData('hethan', pastAssignments);
         isLoading = false;
       });
     } else {
@@ -89,24 +88,15 @@ class _ListAssignmentState extends State<ListAssignment>
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    String className = widget.classData['class_name'];
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         toolbarHeight: 60,
         centerTitle: true,
         backgroundColor: AppColors.primary,
-        leading:IconButton(
-          icon: const Icon(
-            Icons.arrow_back_sharp,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        leading: null,
         title: const Text(
           "Danh sách bài tập",
           style: TextStyle(
@@ -114,45 +104,46 @@ class _ListAssignmentState extends State<ListAssignment>
           ),
         ),
       ),
-
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        children: [
-          // TabBar đặt ở body
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: "Còn hạn"),
-                Tab(text: "Hết hạn"),
-                Tab(text: "Đã hoàn thành"),
-              ],
-              labelColor: AppColors.primary,
-              unselectedLabelColor: Colors.black,
-              indicatorColor:  AppColors.primary,
-            ),
-          ),
-          // TabBarView hiển thị các bài tập theo từng tab
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
               children: [
-                _buildAssignmentList(upcomingAssignments),
-                _buildAssignmentList(pastAssignments),
-                _buildAssignmentList(completedAssignments),
+                // TabBar đặt ở body
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: TabBar(
+                    controller: _tabController,
+                    tabs: const [
+                      Tab(text: "Còn hạn"),
+                      Tab(text: "Hết hạn"),
+                      Tab(text: "Đã hoàn thành"),
+                    ],
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: Colors.black,
+                    indicatorColor: AppColors.primary,
+                  ),
+                ),
+                // TabBarView hiển thị các bài tập theo từng tab
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildAssignmentList(upcomingAssignments),
+                      _buildAssignmentList(pastAssignments),
+                      _buildAssignmentList(completedAssignments),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
+
   String formatDeadline(String deadline) {
     final deadlineDate = DateTime.parse(deadline);
     return DateFormat('dd-MM-yyyy, HH:mm').format(deadlineDate);
   }
+
   String _getTimeRemaining(String deadline) {
     final deadlineDate = DateTime.parse(deadline);
     final now = DateTime.now();
@@ -179,11 +170,10 @@ class _ListAssignmentState extends State<ListAssignment>
     return ListView.builder(
       itemCount: assignments.length,
       itemBuilder: (context, index) {
-        final assignment = assignments[index];
+        final assignment = assignments[index] as Map<dynamic,dynamic>;
         return GestureDetector(
           onTap: () {
-            Navigator.pushNamed(
-              context,
+            Navigator.of(context, rootNavigator: true).pushNamed(
               '/detail-assignment-student',
               arguments: assignment,
             );
@@ -247,6 +237,4 @@ class _ListAssignmentState extends State<ListAssignment>
       },
     );
   }
-
-
 }
