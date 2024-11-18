@@ -42,7 +42,7 @@ class DetailClassScreenLec extends StatelessWidget {
             _ClassInfoButton(),
             _ViewMaterialsButton(classData: classData, token: token),
             _GradeButton(classData: classData, token: token),
-            _AttendanceButton(),
+            _AttendanceButton(classData: classData, token: token),
             _CreateAssignmentButton(classData: classData, token: token),
           ],
         ),
@@ -104,10 +104,20 @@ class _GradeButton extends StatelessWidget {
 }
 
 class _AttendanceButton extends StatelessWidget {
+  final Map<dynamic, dynamic> classData;
+  final String token;
+
+  const _AttendanceButton({required this.classData, required this.token});
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
+        Navigator.pushNamed(
+          context,
+            '/attendance-screen-lecturer',
+          arguments: classData['class_id']
+        );
       },
       style: _buttonStyle,
       child: _getButtonContent(Icons.check_circle, 'Điểm danh'),

@@ -21,7 +21,13 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   String _classId = '';
   final TextEditingController _dateController = TextEditingController();
 
+  int? sortColumnIndex1;
+  bool sortAscending1 = true;
+  int? sortColumnIndex2;
+  bool sortAscending2 = true;
+
   late TabController _tabController;
+  final FocusNode _dateFocusNode = FocusNode();
 
   bool isLoading = false;
 
@@ -39,20 +45,42 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   @override
   void initState() {
     super.initState();
-
     _tabController = TabController(length: 2, vsync: this);
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
 
     getToken().then((_) {
-      _classId = args['classId'];
-      _date = formatDate(DateTime.now());
-      _dateController.text = _date;
-
-      fetchStudents();
+      setState(() {
+        _date = formatDate(DateTime.now());
+        _dateController.text = _date;
+      });
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Safely access ModalRoute arguments here
+    final args = ModalRoute.of(context)?.settings.arguments as String?;
+    print("token: " + _token + "classId: " + args!);
+    if (args != null) {
+      setState(() {
+        _classId = args;
+      });
+      getToken().then((_) {
+        print(_token);
+        setState(() {
+          _date = formatDate(DateTime.now());
+          _dateController.text = _date;
+          fetchStudents();
+        });
+      });
+    }
+  }
+
   Future<void> fetchStudents() async {
+    setState(() {
+      isLoading = true;
+    });
     final response = await ApiClass().post('/get_class_info', {
       "token": _token,
       "class_id": _classId,
@@ -61,12 +89,17 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     });
 
     if (response.statusCode == 200) {
+
       setState(() {
+        isLoading = false;
         students = List<Map<String, dynamic>>.from(
           json.decode(response.body)["data"]["student_accounts"],
         );
       });
     } else {
+      setState(() {
+        isLoading = false;
+      });
       showError(response);
     }
   }
@@ -76,12 +109,13 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
       isLoading = true; // Show loading indicator
       attendanceDetails.clear();
       _date = _dateController.text;
+      print("date:" + _date);
     });
 
     final response = await ApiClass().post('/get_attendance_list', {
       'token': _token,
-      'class_id': '001511',
-      'date': _date,
+      'class_id': _classId,
+      'date': _date.toString(),
     });
 
     if (response.statusCode == 200) {
@@ -119,6 +153,9 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   }
 
   Future<void> changeAbsenceStatus(attendanceId, status) async {
+    setState(() {
+      isLoading = true;
+    });
     final response = await ApiClass().post('/set_attendance_status', {
       "token": _token,
       "status": status.toString(),
@@ -126,17 +163,25 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     });
 
     if (response.statusCode == 200) {
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Change Status Successfully')),
       );
+
     } else {
+      setState(() {
+        isLoading = false;
+      });
       showError(response);
+
     }
   }
 
   Future<void> showError(response) async {
     if(response.statusCode == 400){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Bad Request!")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No Data!")));
     } else{
       final data = json.decode(response.body);
       final errorMessage = data['meta']['message'];
@@ -144,7 +189,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
       if (data['meta']['code'] == 9998) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
-        await _logout();
+        _logout();
       }
     }
   }
@@ -195,6 +240,58 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     }
   }
 
+  void _sortTable1(int columnIndex, bool ascending) {
+    setState(() {
+      sortColumnIndex1 = columnIndex;
+      sortAscending1 = ascending;
+
+      // Sort by student_id if columnIndex is 0
+      if (columnIndex == 0) {
+        students.sort((a, b) {
+          return ascending
+              ? a['student_id'].compareTo(b['student_id'])
+              : b['student_id'].compareTo(a['student_id']);
+        });
+      }
+      // Sort by Name if columnIndex is 1
+      if (columnIndex == 1) {
+        students.sort((a, b) {
+          final nameA = '${a['first_name']} ${a['last_name']}';
+          final nameB = '${b['first_name']} ${b['last_name']}';
+          return ascending
+              ? nameA.compareTo(nameB)
+              : nameB.compareTo(nameA);
+        });
+      }
+    });
+  }
+
+  void _sortTable2(int columnIndex, bool ascending) {
+    setState(() {
+      sortColumnIndex2 = columnIndex;
+      sortAscending2 = ascending;
+
+      // Sort by student_id if columnIndex is 0
+      if (columnIndex == 0) {
+        attendanceDetails.sort((a, b) {
+          return ascending
+              ? a['student_id'].compareTo(b['student_id'])
+              : b['student_id'].compareTo(a['student_id']);
+        });
+      }
+      // Sort by Name if columnIndex is 1
+      if (columnIndex == 1) {
+        attendanceDetails.sort((a, b) {
+          final nameA = '${a['first_name']} ${a['last_name']}';
+          final nameB = '${b['first_name']} ${b['last_name']}';
+          return ascending
+              ? nameA.compareTo(nameB)
+              : nameB.compareTo(nameA);
+        });
+      }
+    });
+  }
+
   // Handle Checkbox Change for Absence List
   void _onCheckboxChanged(bool? value, String studentId) {
     setState(() {
@@ -210,16 +307,17 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Student Attendance'),
+        title: const Text('ĐIỂM DANH'),
+        foregroundColor: AppColors.tertiary,
         backgroundColor: AppColors.primary,  // Applying custom primary color
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.secondary,  // Purple color for tab indicator
-          labelStyle: TextStyle(color: AppColors.secondary),  // Purple color for selected tab text
+          indicatorColor: AppColors.secondary,
+          labelStyle: TextStyle(color: AppColors.secondary),
           unselectedLabelColor: Colors.grey,  // Color for unselected tab text
           tabs: const [
-            Tab(text: "Take Attendance"),
-            Tab(text: "Update Attendance Status"),
+            Tab(text: "Điểm danh"),
+            Tab(text: "Cập nhật điểm danh"),
           ],
         ),
       ),
@@ -229,25 +327,36 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
             child: TabBarView(
               controller: _tabController,
               children: [
-                // "Take Attendance" Section
                 Column(
                   children: [
                     SizedBox(
                       height: 400,
-                      child: SingleChildScrollView(
+                      width: MediaQuery.of(context).size.width,
+                      child: isLoading ? Center(child: CircularProgressIndicator())
+                          : SingleChildScrollView(
                         child: DataTable(
-                          columns: const [
-                            DataColumn(label: Text("ID")),
-                            DataColumn(label: Text("Name")),
-                            DataColumn(label: Text("Student ID")),
-                            DataColumn(label: Text("Absent")),
+                          sortColumnIndex: sortColumnIndex1,
+                          sortAscending: sortAscending1,
+
+                          columns: [
+                            DataColumn(
+                              label: const Text("ID"),
+                              onSort: (columnIndex, ascending) => _sortTable1(columnIndex, ascending),
+                            ),
+                            DataColumn(
+                              label: const Text("Họ và tên"),
+                              onSort: (columnIndex, ascending) => _sortTable1(columnIndex, ascending),
+                            ),
+                            const DataColumn(label: Text("Vắng")),
                           ],
-                          rows: students.map((student) {
+                          rows: students.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final student = entry.value;
+
                             return DataRow(
                               cells: [
-                                DataCell(Text(student['account_id'].toString())),
-                                DataCell(Text('${student['first_name']} ${student['last_name']}')),
                                 DataCell(Text(student['student_id'].toString())),
+                                DataCell(Text('${student['first_name']} ${student['last_name']}')),
                                 DataCell(
                                   Checkbox(
                                     value: absenceList.contains(student['student_id'].toString()),
@@ -266,20 +375,22 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                     ElevatedButton(
                       onPressed: () async {
                         showLoadingDialog(context);
-                        await Future.delayed(Duration(seconds: 1));
+                        await submitAbsences();
                         Navigator.of(context).pop();
+
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.buttonColor,  // Button background color
                         foregroundColor: Colors.white,  // Text color for the button
                       ), // Custom button color
-                      child: Text('Submit'),
+                      child: Text('Gửi'),
                     ),
                   ],
                 ),
 
                 // "Update Attendance Status" Section
                 Column(
+
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -288,20 +399,21 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                           Expanded(
                             child: TextField(
                               decoration: InputDecoration(
-                                labelText: 'Date',
+                                labelText: 'Nhập ngày',
                                 hintText: 'YYYY-MM-DD',
                                 hintStyle: TextStyle(color: AppColors.textColorBlur),
                                 border: OutlineInputBorder(),
                                 suffixIcon: Icon(Icons.calendar_today),
                                 fillColor: AppColors.tertiary,
-                                filled: true,
                               ),
                               controller: _dateController,
+                              focusNode: _dateFocusNode,
                             ),
                           ),
                           IconButton(
                             icon: Icon(Icons.search, color: AppColors.primary50),  // Custom icon color
                             onPressed: () async {
+                              _dateFocusNode.unfocus();
                               fetchAttendanceData();
                             },
                           ),
@@ -309,31 +421,44 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                       ),
                     ),
                     Expanded(
+
                       child: isLoading
                           ? Center(child: CircularProgressIndicator())
                           : SingleChildScrollView(
                         child: DataTable(
-                          columns: const [
-                            DataColumn(label: Text('ID')),
-                            DataColumn(label: Text('Name')),
-                            DataColumn(label: Text('Student ID')),
-                            DataColumn(label: Text('Absent')),
+                          sortColumnIndex: sortColumnIndex2,
+                          sortAscending: sortAscending2,
+
+                          columns: [
+                            DataColumn(
+                              label: const Text("ID"),
+                              onSort: (columnIndex, ascending) => _sortTable2(columnIndex, ascending),
+                            ),
+                            DataColumn(
+                              label: const Text("Họ và tên"),
+                              onSort: (columnIndex, ascending) => _sortTable2(columnIndex, ascending),
+                            ),
+                            const DataColumn(label: Text("Trạng thái")),
                           ],
                           rows: attendanceDetails.map((attendance) {
                             return DataRow(
                               cells: [
-                                DataCell(Text(attendance['attendance_id'].toString())),
-                                DataCell(Text('${attendance['first_name']} ${attendance['last_name']}')),
                                 DataCell(Text(attendance['student_id'].toString())),
+                                DataCell(Text('${attendance['first_name']} ${attendance['last_name']}')),
                                 DataCell(
-                                  Switch(
-                                    value: attendance['status'] == 0 ? false : true,
-                                    onChanged: (value) {
-                                      changeAbsenceStatus(
-                                        attendance['attendance_id'],
-                                        value ? 1 : 0,
-                                      );
+                                  DropdownButton<String>(
+                                    value: attendance['status'],
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        attendance['status'] = newValue; // Update the status in the attendance list
+                                        changeAbsenceStatus(attendance['attendance_id'], newValue);
+                                      });
                                     },
+                                    items: const [
+                                      DropdownMenuItem(value: 'EXCUSED_ABSENCE', child: Text('Có Phép')),
+                                      DropdownMenuItem(value: 'UNEXCUSED_ABSENCE', child: Text('Không phép')),
+                                      DropdownMenuItem(value: 'PRESENT', child: Text('Có mặt')),
+                                    ],
                                   ),
                                 ),
                               ],

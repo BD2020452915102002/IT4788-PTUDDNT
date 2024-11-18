@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:ptuddnt/presentation/screens/forgot_password_screen.dart';
-import 'package:ptuddnt/presentation/screens/lecturer/class/detail_class_screen_lec.dart';
-import 'package:ptuddnt/presentation/screens/lecturer/home_screen_layout_lec.dart';
-import 'package:ptuddnt/presentation/screens/student/class/detail_assignment_screen.dart';
-import 'package:ptuddnt/presentation/screens/student/class/detail_class_screen_student.dart';
-import 'package:ptuddnt/presentation/screens/splash_screen.dart';
-import 'package:ptuddnt/presentation/screens/login_screen.dart';
-import 'package:ptuddnt/presentation/screens/register_screen.dart';
-import 'package:ptuddnt/presentation/screens/student/absence_request/request_absence_student.dart';
-import 'package:ptuddnt/presentation/screens/student/home_screen_layout_stu.dart';
-import 'package:ptuddnt/presentation/screens/student/information_student_screen.dart';
-import '../presentation/screens/lecturer/register_class_screen.dart';
-import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
 
+
+
+import 'package:flutter/cupertino.dart';
+
+import '../presentation/screens/forgot_password_screen.dart';
+import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
+import '../presentation/screens/lecturer/class/detail_class_screen_lec.dart';
+import '../presentation/screens/lecturer/home_screen_layout_lec.dart';
+import '../presentation/screens/lecturer/register_class_screen.dart';
+import '../presentation/screens/login_screen.dart';
+import '../presentation/screens/register_screen.dart';
+import '../presentation/screens/splash_screen.dart';
+import '../presentation/screens/student/absence_request/request_absence_student.dart';
+import '../presentation/screens/student/class/absent_record_screen.dart';
+import '../presentation/screens/student/class/detail_assignment_screen.dart';
+import '../presentation/screens/student/class/detail_class_screen_student.dart';
+import '../presentation/screens/student/class/list_assignment.dart';
+import '../presentation/screens/student/home_screen_layout_stu.dart';
+import '../presentation/screens/student/information_student_screen.dart';
 
 class AppRoutes {
   static final Map<String, WidgetBuilder> routes = {
@@ -31,11 +36,11 @@ class AppRoutes {
     '/register': (context) => const RegisterScreen(),
     '/forgot-password': (context) => const ForgotPasswordScreen(),
 
-    // '/list-assignment-student': (context) {
-    //   return ListAssignment();
-    // },
+    '/list-assignment-student': (context) {
+      return ListAssignment();
+    },
     '/detail-assignment-student': (context) {
-      final assignment = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
+      final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return AssignmentDetailScreen(assignment: assignment);
     },
     '/request-absence': (context) {
@@ -46,8 +51,13 @@ class AppRoutes {
       final userId = ModalRoute.of(context)!.settings.arguments as String;
       return StudentInfoScreen(userId: userId);
     },
+    '/absent-record-student': (context) {
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return AttendanceRecordScreen(classId: classId);
+    },
+
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
-    '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(),
+    '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(), //parameter la {classId}
 
   };
 }
