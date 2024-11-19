@@ -23,11 +23,9 @@ class HiveService {
   Future<void> saveData(String key, dynamic value) async {
     await _box.put(key, value);
   }
-
   dynamic getData(String key) {
     return _box.get(key);
   }
-
   Future<void> deleteData(String key) async {
     await _box.delete(key);
   }

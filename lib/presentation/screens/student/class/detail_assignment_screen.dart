@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
@@ -20,11 +21,42 @@ class AssignmentDetailScreen extends StatefulWidget {
 class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
   String? textResponse;
   File? selectedFile;
+  bool loading = false;
+  // late final Map<dynamic, dynamic> submitData;
+  late String stateAssignment;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final status = DateTime.parse(widget.assignment['deadline']).isBefore(now);
+    if (widget.assignment['is_submitted']) {
+      stateAssignment = 'hoanthanh';
+    } else {
+      stateAssignment = status ? 'hethan' : 'chuahoanthanh';
+    }
+  }
 
   String formatDeadline(String deadline) {
     final deadlineDate = DateTime.parse(deadline);
     return DateFormat('dd-MM-yyyy, HH:mm').format(deadlineDate);
   }
+
+  Future<void> fetchSubmit() async {
+    if (stateAssignment == 'hoanthanh') {
+      try {
+        final res = await ApiClass().post('/get_submission',
+            {"token": Token().get(), "assignment_id": widget.assignment['id']});
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          setState(() {
+            // submitData = data['data'] as Map<dynamic, dynamic>;
+          });
+        }
+      } catch (err) {}
+    }
+  }
+
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -33,6 +65,7 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
       print('Could not launch $url');
     }
   }
+
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles();
     if (result != null) {
@@ -41,9 +74,14 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
       });
     }
   }
+
   Future<void> _submitAssignment() async {
+    setState(() {
+      loading = true;
+    });
+
     if (selectedFile != null && textResponse != null) {
-      final token =  Token().get();
+      final token = Token().get();
       final assignmentID = widget.assignment['id'].toString();
 
       var request = http.MultipartRequest(
@@ -59,16 +97,34 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
           selectedFile!.path,
         ),
       );
-      var response = await request.send();
-      print(response);
+
+      try {
+        var response = await request.send();
+        if (response.statusCode == 200) {
+          // Xử lý phản hồi thành công
+          print('Bài tập đã nộp thành công!');
+        } else {
+          // Xử lý phản hồi lỗi
+          print('Lỗi khi nộp bài tập: ${response.statusCode}');
+        }
+      } catch (e) {
+        // Xử lý lỗi kết nối
+        print('Lỗi kết nối: $e');
+      } finally {
+        setState(() {
+          loading = false;
+        });
+      }
+    } else {
+      setState(() {
+        loading = false;
+      });
+      print('Vui lòng chọn file và nhập mô tả!');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final status = DateTime.parse(widget.assignment['deadline']).isBefore(now);
-    print('duc$status');
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -109,6 +165,13 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                   style: const TextStyle(color: Colors.grey),
                 ),
               ),
+             // if(submitData['submission_time'] != null)
+             //   Center(
+             //   child: Text(
+             //     'Đã nộp: ${formatDeadline(submitData['submission_time'])}',
+             //     style: const TextStyle(color: Colors.greenAccent),
+             //   ),
+             // ),
               const SizedBox(height: 16),
               const Text(
                 'Mô tả:',
@@ -139,7 +202,9 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                         }
                       },
                       child: Text(
-                        "${widget.assignment['file_url'] ?? 'N/A'}",
+                        widget.assignment['file_url'] != null
+                            ? "${widget.assignment['file_url']}"
+                            : 'Không có file đính kèm',
                         style: TextStyle(
                           color: Colors.blue,
                           decoration: TextDecoration.underline,
@@ -150,89 +215,94 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                 ],
               ),
               const Divider(height: 32, color: AppColors.primary),
-               const Text(
-                'Nộp bài',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Mô tả:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                onChanged: (value) {
-                  setState(() {
-                    textResponse = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Nhập mô tả bài làm...',
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(0),
-                      borderSide: BorderSide(color: Colors.white30)),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(0),
-                      borderSide: BorderSide(color: AppColors.primary)),
-                  filled: true,
-                  fillColor: Colors.grey[50],
+              if (stateAssignment != 'hethan') ...[
+                const Text(
+                  'Nộp bài',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                maxLines: 5,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Đính kèm:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      minimumSize: WidgetStateProperty.all<Size>(Size(40, 50)),
-                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
+                const SizedBox(height: 16),
+                const Text(
+                  'Mô tả:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      textResponse = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Nhập mô tả bài làm...',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(0),
+                        borderSide: BorderSide(color: Colors.white30)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(0),
+                        borderSide: BorderSide(color: AppColors.primary)),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                  ),
+                  maxLines: 5,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Đính kèm:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ButtonStyle(
+                        minimumSize:
+                            MaterialStateProperty.all<Size>(Size(40, 50)),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(AppColors.primary),
+                      ),
+                      onPressed: _pickFile,
+                      child: const Icon(Icons.attach_file, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        selectedFile != null
+                            ? selectedFile!.path.split('/').last
+                            : 'Chưa chọn file',
+                        style: TextStyle(
+                          color: Colors.grey,
                         ),
                       ),
-                      backgroundColor:
-                      WidgetStateProperty.all<Color>(AppColors.primary),
                     ),
-                    onPressed: _pickFile,
-                    child: const Icon(Icons.attach_file, color: Colors.white),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      selectedFile != null
-                          ? selectedFile!.path.split('/').last
-                          : 'Chưa chọn file',
-                      style: TextStyle(
-                        color: Colors.grey,
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _submitAssignment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _submitAssignment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    child: const Text(
+                      'Nộp bài',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  child: const Text(
-                    'Nộp bài',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

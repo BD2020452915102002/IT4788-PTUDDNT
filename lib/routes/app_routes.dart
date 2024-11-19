@@ -38,7 +38,7 @@ class AppRoutes {
       return ListAssignment();
     },
     '/detail-assignment-student': (context) {
-      final assignment = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final assignment = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
       return AssignmentDetailScreen(assignment: assignment);
     },
     '/request-absence': (context) {
