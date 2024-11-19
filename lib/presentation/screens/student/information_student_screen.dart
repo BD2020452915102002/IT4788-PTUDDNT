@@ -17,8 +17,14 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
   Map<String, dynamic> userData = {};
   late String token = '';
   late String userName = '';
-  File? selectedImage;
-  String _imageInfo = 'Upload Avatar';
+  late String hoTen = '';
+  String? _imageInfo;
+  String? _imagePath;
+  bool isLoading = false;
+  bool isPasswordLoading = false;
+  final TextEditingController _oldPasswordController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
   @override
   void initState() {
@@ -42,10 +48,41 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
     if (response.statusCode == 200) {
       setState(() {
         userData = jsonDecode(response.body)['data'];
-        userName = '${userData['ho']} ${userData['ten']}';
+        hoTen = '${userData['ho']} ${userData['ten']}';
       });
     } else {
       print('Failed to load user data');
+    }
+  }
+
+  Future<void> _changePassword() async {
+    setState(() {
+      isPasswordLoading = true;
+    });
+    final url = Uri.parse('http://160.30.168.228:8080/it4788/change_password');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'token': token,
+        'old_password': _oldPasswordController.text,
+        'new_password': _newPasswordController.text,
+      }),
+    );
+
+    setState(() {
+      isPasswordLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đổi mật khẩu thành công')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đổi mật khẩu thất bại')),
+      );
     }
   }
 
@@ -53,11 +90,23 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        selectedImage = File(pickedFile.path);
         _imageInfo = pickedFile.name;
+        _imagePath = pickedFile.path;
       });
     }
   }
+  String convertToDirectDownloadLink(String driveLink) {
+    final regex = RegExp(r'file/d/([a-zA-Z0-9_-]+)');
+    final match = regex.firstMatch(driveLink);
+
+    if (match != null && match.groupCount > 0) {
+      final fileId = match.group(1);
+      return 'https://drive.google.com/uc?export=view&id=$fileId';
+    } else {
+      throw ArgumentError('Invalid Google Drive link format');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +121,8 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
         title: const Text(
           "Thông tin sinh viên",
           style: TextStyle(
-              color: AppColors.tertiary,
-              fontStyle: FontStyle.normal,
-              fontFamily: "Roboto"
+            color: AppColors.tertiary,
+            fontStyle: FontStyle.normal,
           ),
         ),
         centerTitle: true,
@@ -84,10 +132,10 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
         children: [
           Stack(
             children: [
-              Image.network(
-                'https://bcp.cdnchinhphu.vn/334894974524682240/2022/12/5/dhbkhn-6920-1658994052-1-16702134834751920701721.jpg',
-                width: double.infinity,
+              Image(
+                image: AssetImage("assets/anhbia-hust.png"),
                 height: 120,
+                width: double.infinity,
                 fit: BoxFit.cover,
               ),
               Positioned(
@@ -104,16 +152,19 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                     children: [
                       CircleAvatar(
                         radius: 30,
-                        backgroundImage: NetworkImage(
-                          userData['avatar'] ?? 'https://th.bing.com/th/id/OIP.NigFEo-pLcgvitlruySZzQHaHa?rs=1&pid=ImgDetMain',
-                        ),
+                        backgroundImage: userData['avatar'] != null
+                            ? NetworkImage(convertToDirectDownloadLink(userData['avatar']))
+                            : null,
+                        child: userData['avatar'] == null
+                            ? const Icon(Icons.person, size: 30)
+                            : null,
                       ),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            userName,
+                            hoTen,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -134,101 +185,256 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Color(0xFFFBF8EF),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.only(left: 20, top: 20, right: 20, bottom: 20),
-              //padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Họ tên: ${userName}',
-                    style: const TextStyle(fontSize: 18),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Color(0xD3FBF8EF),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Họ tên: $hoTen',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Id sinh viên: ${userData['id'] ?? 'Không có'}',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Email: ${userData['email'] ?? 'Không có'}',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (dialogContext) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return Dialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.9,
+                                  height: MediaQuery.of(context).size.height * 0.5,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          "Đổi mật khẩu",
+                                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(height: 20),
+                                        TextField(
+                                          controller: _oldPasswordController,
+                                          obscureText: true,
+                                          decoration: const InputDecoration(
+                                            labelText: "Mật khẩu cũ",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 20),
+                                        TextField(
+                                          controller: _newPasswordController,
+                                          obscureText: true,
+                                          decoration: const InputDecoration(
+                                            labelText: "Mật khẩu mới",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 30),
+                                        Center(
+                                          child: ElevatedButton(
+                                            onPressed: isPasswordLoading
+                                              ? null
+                                              : () async {
+                                                setState(() {
+                                                  isPasswordLoading = true;
+                                                });
+                                                await _changePassword();
+                                                setState(() {
+                                                  isPasswordLoading = false;
+                                                });
+                                              },
+                                            style: ElevatedButton.styleFrom(
+                                              minimumSize: const Size(100, 50),
+                                            ),
+                                            child: isPasswordLoading
+                                              ? const CircularProgressIndicator()
+                                              : const Text("Xác nhận"),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: const Text(
+                      "Thay đổi mật khẩu",
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 16,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Id sinh viên: ${userData['id'] ?? 'Không có'}',
-                    style: const TextStyle(fontSize: 18),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Email: ${userData['email'] ?? 'Không có'}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
+          )
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showModalBottomSheet(
+          showDialog(
             context: context,
-            isScrollControlled: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 20,
-                right: 20,
-                top: 20,
-              ),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Text(
-                      'Chỉnh sửa thông tin',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            builder: (context) {
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  //bool isLoading = false;
+                  return Dialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Chỉnh sửa thông tin',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _usernameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Username',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(15)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await _pickImage();
+                              setState(() {});
+                            },
+                            icon: Icon(_imagePath == null ? Icons.image : Icons.check_circle),
+                            label: Text(_imageInfo ?? 'Upload Avatar'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(150, 50),
+                              backgroundColor: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 60),
+
+                          SizedBox(
+                            width: 120,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: isLoading
+                                ? null
+                                : () async {
+                                  setState(() {
+                                    isLoading = true;
+                                    userName = _usernameController.text;
+                                  });
+                                  final url = Uri.parse('http://160.30.168.228:8080/it4788/change_info_after_signup');
+                                  final request = http.MultipartRequest('POST', url);
+
+                                  request.fields['token'] = token;
+                                  request.fields['name'] = userName;
+                                  if (_imagePath != null) {
+                                    final file = File(_imagePath!);
+                                    request.files.add(
+                                      await http.MultipartFile.fromPath('file', file.path),
+                                    );
+                                  }
+
+                                  final response = await request.send();
+                                  final responseData = await response.stream.bytesToString();
+                                  final data = jsonDecode(responseData);
+
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+
+                                  if (response.statusCode == 200) {
+                                    Navigator.pop(context);
+
+                                    setState(() {
+                                      hoTen = '${data['data']['ten']} ${data['data']['ten']}';
+                                      userData['avatar'] = data['data']['avatar'];
+                                    });
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Cập nhật thông tin thành công')),
+                                    );
+                                  } else {
+                                    Navigator.pop(context);
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Cập nhật thông tin thất bại')),
+                                    );
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(120, 50),
+                                  backgroundColor: AppColors.primary,
+                                ),
+                              child: isLoading
+                                  ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        strokeWidth: 2.0,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      const Text('Đang lưu...'),
+                                    ],
+                                  )
+                                      : const Text('Lưu'),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: _pickImage,
-                      icon: Icon(Icons.image),
-                      label: Text(_imageInfo),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(150, 50),
-                        backgroundColor: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Lưu thông tin thay đổi
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(100, 50),
-                        backgroundColor: AppColors.primary,
-                      ),
-                      child: Text('Lưu'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  );
+                },
+              );
+            },
           );
         },
         backgroundColor: AppColors.primary,
-        child: Icon(Icons.edit, color: Colors.white),
+        child: const Icon(Icons.edit, color: Colors.white),
       ),
+
     );
   }
 }

@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   final ValueNotifier<List<dynamic>> _classListHidden = ValueNotifier([]);
   List<dynamic> _classList = [];
   List<dynamic> _classListShow = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
   String _errorMessage = '';
   String hoTen = '';
   String userName = '';
@@ -25,6 +25,9 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   void initState() {
     super.initState();
     _initializeData();
+    setState(() {
+      _classList = HiveService().getData('classList') ;
+    });
     _classListHidden.addListener(_updateVisibleClasses);
   }
   Future<void> _initializeData() async {
@@ -42,7 +45,22 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           .toList();
     });
   }
+  String convertToDirectDownloadLink(String driveLink) {
+    print('Khang ${driveLink}');
+    final regex = RegExp(r'file/d/([a-zA-Z0-9_-]+)');
+    final match = regex.firstMatch(driveLink);
+
+    if (match != null && match.groupCount > 0) {
+      final fileId = match.group(1);
+      return 'https://drive.google.com/uc?export=view&id=$fileId';
+    } else {
+      throw ArgumentError('Invalid Google Drive link format');
+    }
+  }
   Future<void> fetchClassList() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final userData = HiveService().getData('userData');
       final accountId = userData?['id']?.toString() ?? '';
@@ -64,7 +82,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         final classList = data['data'];
         await HiveService().saveData('classList', classList);
         setState(() {
-          _classList = classList;
           _isLoading = false;
         });
       } else {
@@ -80,7 +97,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
     }
   }
-
   Future<void> _loadUserData() async {
     try {
       final userData = HiveService().getData('userData');
@@ -89,7 +105,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
         String avatarURL = userData['avatar'] ?? '';
-        String userNamekkk = userData['name'] ?? '';
+        String userNamekkk = userData['email'] ?? '';
 
         setState(() {
           _classList = classList;
@@ -98,7 +114,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           userName = userNamekkk;
           _isLoading = false;
         });
-
         if (classList.isEmpty) {
           setState(() {
             _errorMessage = 'Không có dữ liệu lớp học.';
@@ -117,7 +132,28 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
     }
   }
-
+  Future<void> _registerClassAPI (List<String> classIds)async {
+    try {
+      final res = await ApiClass().post('/register_class', {
+        "token": Token().get(),
+        "role": HiveService().getData('userData')['role'],
+        "class_ids": classIds
+      });
+      if ( res.statusCode == 200){
+        fetchClassList();
+        setState(() {
+          _classList = HiveService().getData('classList') ;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng ký thành công')),
+        );
+      }
+    }catch (e){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã xảy ra lỗi. Vui lòng thử lại sau.')),
+      );
+    }
+}
   void _showClassManagementDialog() {
     showDialog(
       context: context,
@@ -177,6 +213,79 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       },
     );
   }
+  void _registerClass() {
+    List<TextEditingController> controllers = [TextEditingController()]; // Danh sách controllers cho TextField
+    List<String> classIds = [];  // Mảng để lưu các ID lớp học
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Đăng ký lớp học'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(  // Thêm SingleChildScrollView để cuộn
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Hiển thị các trường nhập ID lớp học
+                    ...List.generate(controllers.length, (index) {
+                      return TextFormField(
+                        controller: controllers[index],
+                        decoration: InputDecoration(
+                          labelText: 'Nhập ID lớp học ${index + 1}',
+                        ),
+                        onSaved: (value) {
+                          if (value != null && value.isNotEmpty) {
+                            classIds.add(value);  // Lưu ID lớp học vào mảng
+                          }
+                        },
+                      );
+                    }),
+                    // Nút để thêm trường nhập ID lớp học mới
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        setState(() {
+                          controllers.add(TextEditingController()); // Thêm controller mới
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();  // Đóng cửa sổ
+              },
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Lưu các ID lớp học vào mảng khi nhấn OK
+                classIds.clear();  // Xóa mảng classIds cũ trước khi thêm mới
+                controllers.forEach((controller) {
+                  if (controller.text.isNotEmpty) {
+                    classIds.add(controller.text);  // Lưu tất cả ID vào mảng
+                  }
+                });
+
+                if (classIds.isNotEmpty) {
+                  _registerClassAPI(classIds);  // Gọi API khi mảng classIds không rỗng
+                }
+                Navigator.of(context).pop();  // Đóng cửa sổ
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -195,10 +304,8 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 const SizedBox(height: 40),
                 ListTile(
                   leading: const Icon(Icons.add),
-                  title: const Text('Tham gia lớp học'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
+                  title: const Text( 'Tham gia lớp học'),
+                  onTap: _registerClass,
                 ),
               ],
             ),
@@ -348,12 +455,14 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                       width: 50,
                       height: 50,
                       decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         backgroundColor: Colors.blue,
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        ),
+                        backgroundImage:  avatar != ''
+                            ? NetworkImage(convertToDirectDownloadLink(avatar))
+                            : null,
+                        child:  avatar == ''
+                            ? const Icon(Icons.person, size: 30)
+                            : null,
                       ),
                     ),
                     Column(
