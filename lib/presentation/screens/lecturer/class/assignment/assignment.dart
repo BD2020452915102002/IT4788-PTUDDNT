@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:ptuddnt/data/models/assign.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/colors.dart';
+import '../../../../../core/utils/hive.dart';
 import '../../../../../data/models/material.dart';
 import 'creat_assignment.dart';
 import 'edit_assignment.dart';
@@ -28,7 +29,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
   @override
   void initState() {
     super.initState();
-    loadAssign();
+    _init();
     ongoingAssignments = assignments.where((assignment) {
       return assignment.deadline.isAfter(DateTime.now());
     }).toList();
@@ -37,11 +38,18 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       return assignment.deadline.isBefore(DateTime.now());
     }).toList();
   }
-  Future<void> loadAssign() async {
-    assignments = await fetchAssignment(widget.token, widget.classId );
+  Future<void> _init () async {
+    final bt = HiveService().getData('baitap');
+    if ( bt == null ){
+      await loadAssign();
+    }
     setState(() {
+      assignments = (HiveService().getData('baitap') as List).map((json) => Assignment.fromJson(json)).toList();
       isLoading = false;
     });
+  }
+  Future<void> loadAssign() async {
+    assignments = await fetchAssignment(widget.token, widget.classId );
   }
   Future<List<Assignment>> fetchAssignment(String token, String classId) async {
     final String apiUrl = 'http://160.30.168.228:8080/it5023e/get_all_surveys'; // Thay {{prefix}} bằng URL thực tế của bạn
@@ -68,8 +76,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse != null && jsonResponse['data'] != null) {
-          final data = jsonResponse['data'] as List;
-          return data.map((json) => Assignment.fromJson(json)).toList();
+          await HiveService().saveData('baitap', jsonResponse['data']);
         }
       } else {
         throw Exception('Failed to fetch assignments: ${response.statusCode} - ${response.body}');
@@ -148,7 +155,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : assignments.isEmpty
-          ? Center(child: Text("No material found."))
+          ? Center(child: Text("No Assignmnet found."))
           : Stack(
         children: [
           ListView(

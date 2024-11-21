@@ -10,3 +10,6 @@ Bài tập lớn môn học
 
 ## Giảng viên hướng dẫn : ThS. Nguyễn Tiến Thành
 
+// thay đổi màu nút đăng nhập nếu nhập nhiều ký tự
+message: đăng nhập thất bại nên để thời gian biến mất
+update pulldown refresh
