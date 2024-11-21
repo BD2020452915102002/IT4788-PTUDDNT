@@ -143,7 +143,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập email';
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                      } else if (!RegExp(
+                          r'^[a-zA-Z0-9._%+-]+@(hust\.edu\.vn|soict\.hust\.edu\.vn)$')
                           .hasMatch(value)) {
                         return 'Vui lòng nhập email lệ';
                       }
