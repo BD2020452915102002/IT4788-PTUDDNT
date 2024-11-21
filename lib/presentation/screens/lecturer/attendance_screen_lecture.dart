@@ -6,7 +6,8 @@ import '../../../core/config/api_class.dart';
 import '../../../core/constants/colors.dart';  // Import AppColors class
 
 class AttendanceLectureScreen extends StatefulWidget {
-  const AttendanceLectureScreen({super.key});
+  final String classId;
+  const AttendanceLectureScreen({super.key, required this.classId});
   @override
   State<AttendanceLectureScreen> createState() => _AttendanceLecturerState();
 }
@@ -47,34 +48,14 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
+    _classId = widget.classId;
     getToken().then((_) {
       setState(() {
         _date = formatDate(DateTime.now());
         _dateController.text = _date;
+        fetchStudents();
       });
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Safely access ModalRoute arguments here
-    final args = ModalRoute.of(context)?.settings.arguments as String?;
-    print("token: " + _token + "classId: " + args!);
-    if (args != null) {
-      setState(() {
-        _classId = args;
-      });
-      getToken().then((_) {
-        print(_token);
-        setState(() {
-          _date = formatDate(DateTime.now());
-          _dateController.text = _date;
-          fetchStudents();
-        });
-      });
-    }
   }
 
   Future<void> fetchStudents() async {
@@ -219,6 +200,22 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
         );
       },
     );
+  }
+
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _dateController.text = pickedDate.toLocal().toString().split(' ')[0];
+      });
+      print(_dateController.text);
+      // Format as YYYY-MM-DD
+    }
   }
 
   // Submit Absences
@@ -397,26 +394,37 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                       child: Row(
                         children: [
                           Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: 'Nhập ngày',
-                                hintText: 'YYYY-MM-DD',
-                                hintStyle: TextStyle(color: AppColors.textColorBlur),
-                                border: OutlineInputBorder(),
-                                suffixIcon: Icon(Icons.calendar_today),
-                                fillColor: AppColors.tertiary,
+                            child: GestureDetector(
+                              onTap: () async {
+                                _dateFocusNode.unfocus(); // Close the keyboard if open
+                                await _pickDate(context); // Show date picker
+                              },
+                              behavior: HitTestBehavior.translucent, // Ensures taps are properly registered
+                              child: AbsorbPointer( // Prevent default TextField tap behavior
+                                child: TextField(
+                                  readOnly: true,
+                                  decoration: InputDecoration(
+                                    labelText: 'Nhập ngày',
+                                    hintText: 'YYYY-MM-DD',
+                                    hintStyle: TextStyle(color: AppColors.textColorBlur),
+                                    border: OutlineInputBorder(),
+                                    suffixIcon: Icon(Icons.calendar_today),
+                                    fillColor: AppColors.tertiary,
+                                  ),
+                                  controller: _dateController,
+                                  focusNode: _dateFocusNode,
+                                ),
                               ),
-                              controller: _dateController,
-                              focusNode: _dateFocusNode,
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.search, color: AppColors.primary50),  // Custom icon color
+                            icon: Icon(Icons.search, color: AppColors.primary50),
                             onPressed: () async {
                               _dateFocusNode.unfocus();
                               fetchAttendanceData();
                             },
                           ),
+
                         ],
                       ),
                     ),
