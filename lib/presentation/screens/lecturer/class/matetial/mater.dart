@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/colors.dart';
 import '../../../../../data/models/material.dart';
@@ -20,23 +22,32 @@ const MaterialScreen({Key? key, required this.token, required this.classId}) : s
 }
 
 class _MaterialScreenState extends State<MaterialScreen>{
-  bool isLoading = true;
+  bool isLoading = false;
   bool isReloading = false;
   List<MaterialClass> materials = [];
 
   @override
   void initState() {
     super.initState();
-    loadMater();
+    _init();
   }
-  Future<void> loadMater() async {
-    materials = await fetchMaterials(widget.token, widget.classId );
-
+  Future<void> _init () async {
+    final tl = HiveService().getData('tailieu');
+    if ( tl == null ){
+      await loadMater();
+    }
     setState(() {
+      materials = (HiveService().getData('tailieu') as List).map((json) => MaterialClass.fromJson(json)).toList();
       isLoading = false;
     });
   }
-  Future<List<MaterialClass>> fetchMaterials(String token, String classId) async {
+  Future<void> loadMater() async {
+     await fetchMaterials(widget.token, widget.classId );
+  }
+  Future<void> fetchMaterials(String token, String classId) async {
+    setState(() {
+      isLoading = true;
+    });
   try{
     final uri = Uri.parse('http://160.30.168.228:8080/it5023e/get_material_list').replace(
         queryParameters: {
@@ -47,12 +58,10 @@ class _MaterialScreenState extends State<MaterialScreen>{
     final response = await http.get(uri);
     print('Token: ${widget.token}');
     print('Class ID: ${widget.classId}');
-
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
       if (jsonResponse != null && jsonResponse['data'] != null) {
-        final data = jsonResponse['data'] as List;
-        return data.map((json) => MaterialClass.fromJson(json)).toList();
+        await HiveService().saveData('tailieu', jsonResponse['data']);
       }
     } else {
       throw Exception('Lỗi khi lấy dữ liệu: ${response.statusCode}');
@@ -60,7 +69,6 @@ class _MaterialScreenState extends State<MaterialScreen>{
   }catch(e){
     print('Đã xảy ra lỗi: $e');
   }
-  return [];
   }
 
   Future<void> _launchURL(String url) async {

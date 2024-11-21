@@ -387,6 +387,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
                 HiveService().clearBox();
                 if (!mounted) return;
                 // Navigator.pushNamed(context, '/login');
+                HiveService().clearBox();
                 Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
                   "/login",
                       (Route<dynamic> route) => false,
