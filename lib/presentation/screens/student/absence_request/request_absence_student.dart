@@ -125,7 +125,7 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
       _isSubmitting = true;
     });
 
-    final url = Uri.parse('http://160.30.168.228:8080/it5023e/request_absence');
+    final url = Uri.parse('http://157.66.24.126:8080/it5023e/request_absence');
 
     final request = http.MultipartRequest('POST', url)
       ..fields['token'] = token

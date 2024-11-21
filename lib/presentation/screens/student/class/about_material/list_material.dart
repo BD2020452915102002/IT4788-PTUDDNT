@@ -37,7 +37,7 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
   }
   Future<List<MaterialClass>> fetchMaterials(String token, String classId) async {
     try{
-      final uri = Uri.parse('http://160.30.168.228:8080/it5023e/get_material_list').replace(
+      final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_list').replace(
         queryParameters: {
           'token': widget.token,
           'class_id': widget.classId,
@@ -74,7 +74,7 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
     try {
 
       final uri = Uri.parse(
-          'http://160.30.168.228:8080/it5023e/get_material_info')
+          'http://157.66.24.126:8080/it5023e/get_material_info')
           .replace(queryParameters: {
         'token': widget.token,
         'material_id': materialId ,
@@ -117,7 +117,7 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
     print('Token: $widget.token');
     try {
       var response = await http.post(
-        Uri.parse('http://160.30.168.228:8080/it5023e/delete_material'),
+        Uri.parse('http://157.66.24.126:8080/it5023e/delete_material'),
         headers: {
           'Content-Type': 'application/json',
         },

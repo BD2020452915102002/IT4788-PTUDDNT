@@ -73,7 +73,7 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://160.30.168.228:8080/it5023e/create_survey"),
+      Uri.parse("http://157.66.24.126:8080/it5023e/create_survey"),
     );
 
     request.fields['token'] = token!;

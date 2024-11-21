@@ -60,7 +60,7 @@ class _EditAssignmnetScreenState extends State<EditAssignmentScreen> {
     print('Description: ${descriptionController.text}');
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://160.30.168.228:8080/it5023e/edit_survey?file'),
+      Uri.parse('http://157.66.24.126:8080/it5023e/edit_survey?file'),
     );
     if (deadlineController.text.contains('T')) {
       DateTime parsedDeadline = DateFormat('yyyy-MM-ddTHH:mm:ss').parse(deadlineController.text);

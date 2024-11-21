@@ -52,7 +52,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     assignments = await fetchAssignment(widget.token, widget.classId );
   }
   Future<List<Assignment>> fetchAssignment(String token, String classId) async {
-    final String apiUrl = 'http://160.30.168.228:8080/it5023e/get_all_surveys'; // Thay {{prefix}} bằng URL thực tế của bạn
+    final String apiUrl = 'http://157.66.24.126:8080/it5023e/get_all_surveys'; // Thay {{prefix}} bằng URL thực tế của bạn
 
     try {
       // Tạo body cho POST request
@@ -99,7 +99,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     print('Token in delete: ${widget.token}');
     try {
       var response = await http.post(
-        Uri.parse('http://160.30.168.228:8080/it5023e/delete_survey'),
+        Uri.parse('http://157.66.24.126:8080/it5023e/delete_survey'),
         headers: {
           'Content-Type': 'application/json',
         },

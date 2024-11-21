@@ -35,7 +35,7 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
   Future<void> fetchMaterialDetails() async {
     try {
       final uri = Uri.parse(
-        'http://160.30.168.228:8080/it5023e/get_material_info',
+        'http://157.66.24.126:8080/it5023e/get_material_info',
       ).replace(queryParameters: {
         'token': widget.token,
         'material_id': widget.materialId,
@@ -78,7 +78,7 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://160.30.168.228:8080/it5023e/edit_material'),
+      Uri.parse('http://157.66.24.126:8080/it5023e/edit_material'),
     );
     request.fields['materialId'] = widget.materialId.toString();
     request.fields['title'] = titleController.text;

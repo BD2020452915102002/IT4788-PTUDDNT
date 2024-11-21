@@ -38,7 +38,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
   }
 
   Future<void> fetchUserData() async {
-    final url = Uri.parse('http://160.30.168.228:8080/it4788/get_user_info');
+    final url = Uri.parse('http://157.66.24.126:8080/it4788/get_user_info');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -59,7 +59,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
     setState(() {
       isPasswordLoading = true;
     });
-    final url = Uri.parse('http://160.30.168.228:8080/it4788/change_password');
+    final url = Uri.parse('http://157.66.24.126:8080/it4788/change_password');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -364,7 +364,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                                     isLoading = true;
                                     userName = _usernameController.text;
                                   });
-                                  final url = Uri.parse('http://160.30.168.228:8080/it4788/change_info_after_signup');
+                                  final url = Uri.parse('http://157.66.24.126:8080/it4788/change_info_after_signup');
                                   final request = http.MultipartRequest('POST', url);
 
                                   request.fields['token'] = token;
