@@ -43,7 +43,7 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
       print("Token, classId, or file is missing");
       return;
     }
-    var request = http.MultipartRequest('POST', Uri.parse('http://160.30.168.228:8080/it5023e/upload_material'));
+    var request = http.MultipartRequest('POST', Uri.parse('http://157.66.24.126:8080/it5023e/upload_material'));
     request.fields['token'] = widget.token;
     request.fields['title'] = titleController.text;
     request.fields['description'] = descriptionController.text;
