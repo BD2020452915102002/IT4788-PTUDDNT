@@ -42,25 +42,29 @@ class _NavigationState extends State<Navigation> {
   }
 
   Future<void> _initializeData() async {
-    final countNotify = HiveService().getData('thongbao');
-    if (countNotify == null) {
-      await fetchUnreadNotificationsCount();
-    }
+    // final countNotify = HiveService().getData('thongbao');
+    // if (countNotify == null) {
+    //   await fetchUnreadNotificationsCount();
+    // }
+    // setState(() {
+    //   unreadNotificationsCount = HiveService().getData('thongbao');
+    // });
     setState(() {
-      unreadNotificationsCount = HiveService().getData('thongbao').toString();
+      unreadNotificationsCount = '2';
     });
   }
 
   Future<void> fetchUnreadNotificationsCount() async {
     try {
-      final response = await ApiClass()
-          .post('/get_unread_notification_count', {"token": Token().get()});
+      final token = Token().get();
+      final response = await ApiClass().post('/get_unread_notification_count', {"token": token});
+      print(response);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final unreadCount = data['data'];
+        final unreadCount = (data['data']).toString();
         HiveService().saveData('thongbao', unreadCount);
       } else {
-        throw Exception('Không thể tải số thông báo chưa đọc');
+       print('Không thể tải số thông báo chưa đọc');
       }
     } catch (e) {
       print('Lỗi khi gọi API: $e');
