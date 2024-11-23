@@ -87,11 +87,6 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final classData = data['data'];
-        final page_content = classData['page_content'];
-        final page_info = classData['page_info'];
-
-        print('duc $page_content');
-        print('duc $page_info');
         await HiveService().saveData(
             'page_content', classData['page_content'] as List<dynamic>);
         await HiveService().saveData('page_info', classData['page_info']);

@@ -29,12 +29,12 @@ class _HomeScreenState extends State<HomeScreenLec> {
     _classListHidden.addListener(_updateVisibleClasses);
   }
   Future<void> _initializeData() async {
-    final classList = HiveService().getData('classList') ?? [];
-    if( classList.isEmpty ) {
+    final classList = HiveService().getData('page_content');
+    if( classList == null ) {
       await fetchClassList();
     }
     setState(() {
-      _classList = HiveService().getData('classList');
+      _classList = HiveService().getData('page_content');
       _isLoading = false;
     });
     await _loadUserData();
@@ -66,9 +66,9 @@ class _HomeScreenState extends State<HomeScreenLec> {
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        final classList = data['data'];
-        await HiveService().saveData('classList', classList);
-
+        final classData = data['data'];
+        await HiveService().saveData('page_content', classData['page_content'] as List<dynamic>);
+        await HiveService().saveData('page_info', classData['page_info']);
       } else {
         setState(() {
           _errorMessage = 'Lỗi khi lấy danh sách lớp học.';
@@ -86,7 +86,6 @@ class _HomeScreenState extends State<HomeScreenLec> {
   Future<void> _loadUserData() async {
     try {
       final userData = HiveService().getData('userData');
-      final classList = HiveService().getData('classList') ?? [];
       if (userData != null) {
         String ho = userData['ho'] ?? '';
         String ten = userData['ten'] ?? '';
@@ -94,18 +93,11 @@ class _HomeScreenState extends State<HomeScreenLec> {
         String userNamekkk = userData['name'] ?? '';
 
         setState(() {
-          _classList = classList;
           hoTen = '$ho $ten';
           avatar = avatarURL;
           userName = userNamekkk;
           _isLoading = false;
         });
-
-        if (classList.isEmpty) {
-          setState(() {
-            _errorMessage = 'Không có dữ liệu lớp học.';
-          });
-        }
       } else {
         setState(() {
           _errorMessage = 'Không tìm thấy thông tin người dùng.';
