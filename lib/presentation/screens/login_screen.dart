@@ -28,11 +28,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
       _errorMessage = '';
     });
-
+    await HiveService().clearBox();
     final response = await ApiAuthen().post('/login', {
       'email': _emailController.text,
       'password': _passwordController.text,
-      'deviceId': 1
+      'device_id': 1,
+      'fcm_token': null,
     });
 
     setState(() {
@@ -45,8 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       String? role = userData['role'];
       String? token = userData['token'];
-      HiveService().saveData('userData', userData);
-      Token().save(token!);
+      await HiveService().saveData('userData', userData);
+      await Token().save(token!);
+      print('token day nha :3 >>>  $token');
+      print('userData day nha :3 >>>  $userData');
 
       if (!mounted) return;
       if (role == 'STUDENT') {
@@ -54,8 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (role == 'LECTURER') {
         Navigator.pushReplacementNamed(context, '/home-lecturer');
       }
-    }
-    else {
+    } else {
       final res = jsonDecode(response.body);
       String message = res['message'];
       setState(() {
@@ -144,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập email';
                       } else if (!RegExp(
-                          r'^[a-zA-Z0-9._%+-]+@(hust\.edu\.vn|soict\.hust\.edu\.vn)$')
+                              r'^[a-zA-Z0-9._%+-]+@(hust\.edu\.vn|soict\.hust\.edu\.vn)$')
                           .hasMatch(value)) {
                         return 'Vui lòng nhập email lệ';
                       }

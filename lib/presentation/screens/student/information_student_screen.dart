@@ -16,24 +16,18 @@ class StudentInfoScreen extends StatefulWidget {
 class StudentInfoScreenState extends State<StudentInfoScreen> {
   Map<String, dynamic> userData = {};
   late String token = '';
-  late String userName = '';
   late String hoTen = '';
-  String? _imageInfo;
   String? _imagePath;
   bool isLoading = false;
   bool isPasswordLoading = false;
+  bool isButtonEnabled = false;
   final TextEditingController _oldPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _getToken();
-  }
-
-  Future<void> _getToken() async {
-    token = (await Token().get())!;
+    token = Token().get();
     fetchUserData();
   }
 
@@ -90,11 +84,46 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _imageInfo = pickedFile.name;
         _imagePath = pickedFile.path;
       });
     }
   }
+
+  Future<void> _updateAvatar() async {
+    setState(() {
+      isLoading = true;
+    });
+    final url = Uri.parse('http://157.66.24.126:8080/it4788/change_info_after_signup');
+    final request = http.MultipartRequest('POST', url);
+    request.fields['token'] = token;
+    if (_imagePath != null) {
+      final file = File(_imagePath!);
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    }
+
+    final response = await request.send();
+    final responseData = await response.stream.bytesToString();
+    final data = jsonDecode(responseData);
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      setState(() {
+        hoTen = '${data['data']['name']}';
+        userData['avatar'] = data['data']['avatar'];
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật thông tin thành công')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật thông tin thất bại')),
+      );
+    }
+  }
+
   String convertToDirectDownloadLink(String driveLink) {
     final regex = RegExp(r'file/d/([a-zA-Z0-9_-]+)');
     final match = regex.firstMatch(driveLink);
@@ -106,7 +135,6 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
       throw ArgumentError('Invalid Google Drive link format');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -150,14 +178,35 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundImage: userData['avatar'] != null
-                            ? NetworkImage(convertToDirectDownloadLink(userData['avatar']))
-                            : null,
-                        child: userData['avatar'] == null
-                            ? const Icon(Icons.person, size: 30)
-                            : null,
+                      Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundImage: userData['avatar'] != null
+                                ? NetworkImage(convertToDirectDownloadLink(userData['avatar']))
+                                : null,
+                            child: userData['avatar'] == null
+                                ? const Icon(Icons.person, size: 30)
+                                : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () async {
+                                await _pickImage();
+                                if (_imagePath != null) {
+                                  _updateAvatar();
+                                }
+                              },
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: AppColors.primary50,
+                                child: const Icon(Icons.camera_alt, size: 15, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(width: 10),
                       Column(
@@ -220,8 +269,11 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
                     onTap: () {
+                      _oldPasswordController.clear();
+                      _newPasswordController.clear();
                       showDialog(
                         context: context,
+                        barrierDismissible: true,
                         builder: (dialogContext) {
                           return StatefulBuilder(
                             builder: (context, setState) {
@@ -231,7 +283,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                                 ),
                                 child: SizedBox(
                                   width: MediaQuery.of(context).size.width * 0.9,
-                                  height: MediaQuery.of(context).size.height * 0.5,
+                                  height: MediaQuery.of(context).size.height * 0.4,
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
                                     child: Column(
@@ -242,44 +294,89 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                                         ),
                                         const SizedBox(height: 20),
+                                        const Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            "Mật khẩu cũ",
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
                                         TextField(
                                           controller: _oldPasswordController,
                                           obscureText: true,
-                                          decoration: const InputDecoration(
-                                            labelText: "Mật khẩu cũ",
-                                            border: OutlineInputBorder(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              isButtonEnabled = value.length >= 6 &&
+                                                  _newPasswordController.text.length >= 6;
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(18),
+                                              borderSide: BorderSide(
+                                                color: AppColors.primary,
+                                                width: 2.0,
+                                              ),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.grey[50],
                                           ),
                                         ),
                                         const SizedBox(height: 20),
+                                        // Mật khẩu mới
+                                        const Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            "Mật khẩu mới",
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
                                         TextField(
                                           controller: _newPasswordController,
                                           obscureText: true,
-                                          decoration: const InputDecoration(
-                                            labelText: "Mật khẩu mới",
-                                            border: OutlineInputBorder(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              isButtonEnabled = value.length >= 6 &&
+                                                  _oldPasswordController.text.length >= 6;
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(18),
+                                              borderSide: BorderSide(
+                                                color: AppColors.primary,
+                                                width: 2.0,
+                                              ),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.grey[50],
                                           ),
                                         ),
-                                        const SizedBox(height: 30),
-                                        Center(
-                                          child: ElevatedButton(
-                                            onPressed: isPasswordLoading
-                                              ? null
-                                              : () async {
-                                                setState(() {
-                                                  isPasswordLoading = true;
-                                                });
-                                                await _changePassword();
-                                                setState(() {
-                                                  isPasswordLoading = false;
-                                                });
-                                              },
-                                            style: ElevatedButton.styleFrom(
-                                              minimumSize: const Size(100, 50),
-                                            ),
-                                            child: isPasswordLoading
-                                              ? const CircularProgressIndicator()
-                                              : const Text("Xác nhận"),
+                                        const SizedBox(height: 20),
+                                        // Nút xác nhận
+                                        ElevatedButton(
+                                          onPressed: isButtonEnabled
+                                              ? () async {
+                                            if (_oldPasswordController.text.isNotEmpty && _newPasswordController.text.isNotEmpty) {
+                                              await _changePassword();
+                                            }
+                                          }
+                                              : null,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.primary,
+                                            minimumSize: const Size(160, 48),
                                           ),
+                                          child: isPasswordLoading
+                                              ? const CircularProgressIndicator(color: Colors.white)
+                                              : const Text("Xác nhận"),
                                         ),
                                       ],
                                     ),
@@ -292,7 +389,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                       );
                     },
                     child: const Text(
-                      "Thay đổi mật khẩu",
+                      'Thay đổi mật khẩu',
                       style: TextStyle(
                         color: Colors.orange,
                         fontStyle: FontStyle.italic,
@@ -304,137 +401,10 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                 ),
               ],
             ),
-          )
+          ),
+          if (isLoading) const CircularProgressIndicator(),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return StatefulBuilder(
-                builder: (context, setState) {
-                  //bool isLoading = false;
-                  return Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'Chỉnh sửa thông tin',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _usernameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Username',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(15)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              await _pickImage();
-                              setState(() {});
-                            },
-                            icon: Icon(_imagePath == null ? Icons.image : Icons.check_circle),
-                            label: Text(_imageInfo ?? 'Upload Avatar'),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(150, 50),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 60),
-
-                          SizedBox(
-                            width: 120,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: isLoading
-                                ? null
-                                : () async {
-                                  setState(() {
-                                    isLoading = true;
-                                    userName = _usernameController.text;
-                                  });
-                                  final url = Uri.parse('http://157.66.24.126:8080/it4788/change_info_after_signup');
-                                  final request = http.MultipartRequest('POST', url);
-
-                                  request.fields['token'] = token;
-                                  request.fields['name'] = userName;
-                                  if (_imagePath != null) {
-                                    final file = File(_imagePath!);
-                                    request.files.add(
-                                      await http.MultipartFile.fromPath('file', file.path),
-                                    );
-                                  }
-
-                                  final response = await request.send();
-                                  final responseData = await response.stream.bytesToString();
-                                  final data = jsonDecode(responseData);
-
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-
-                                  if (response.statusCode == 200) {
-                                    Navigator.pop(context);
-
-                                    setState(() {
-                                      hoTen = '${data['data']['ten']} ${data['data']['ten']}';
-                                      userData['avatar'] = data['data']['avatar'];
-                                    });
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Cập nhật thông tin thành công')),
-                                    );
-                                  } else {
-                                    Navigator.pop(context);
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Cập nhật thông tin thất bại')),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(120, 50),
-                                  backgroundColor: AppColors.primary,
-                                ),
-                              child: isLoading
-                                  ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                        strokeWidth: 2.0,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      const Text('Đang lưu...'),
-                                    ],
-                                  )
-                                      : const Text('Lưu'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.edit, color: Colors.white),
-      ),
-
     );
   }
 }

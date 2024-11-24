@@ -39,12 +39,15 @@ class _NavigationState extends State<Navigation> {
     _initializeData();
   }
   Future<void> _initializeData() async {
-    final countNotify = HiveService().getData('thongbao');
-    if (countNotify == null) {
-      await fetchUnreadNotificationsCount();
-    }
+    // final countNotify = HiveService().getData('thongbao');
+    // if (countNotify == null) {
+    //   await fetchUnreadNotificationsCount();
+    // }
+    // setState(() {
+    //   unreadNotificationsCountXXX = HiveService().getData('thongbao').toString();
+    // });
     setState(() {
-      unreadNotificationsCountXXX = HiveService().getData('thongbao').toString();
+      unreadNotificationsCountXXX = '2';
     });
   }
   Future<void> fetchUnreadNotificationsCount() async {
