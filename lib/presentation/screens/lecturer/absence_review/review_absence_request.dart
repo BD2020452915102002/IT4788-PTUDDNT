@@ -27,7 +27,6 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
     _fetchAbsenceRequests();
   }
 
-  // Lấy dữ liệu từ API
   Future<void> _fetchAbsenceRequests() async {
     if (_isLoading) return;
 
@@ -84,7 +83,6 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        // Cập nhật lại trạng thái yêu cầu trong danh sách
         var request = _absenceRequests.firstWhere((request) => request['id'] == requestId);
         request['status'] = status;
       });
@@ -181,59 +179,62 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
               return ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.9,
+                  maxHeight: MediaQuery.of(context).size.height * 0.6,
                 ),
                 child: StatefulBuilder(
                   builder: (context, setState) {
-                    return AlertDialog(
-                      title: Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Center(child: Text("${request['title']}")),
-                      ),
-                      content: IntrinsicHeight( // Bọc content bằng IntrinsicHeight
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Student: ${request['student_account']['last_name']} ${request['student_account']['first_name']}"),
-                              Text("Date: ${request['absence_date']}"),
-                              Text("Reason: ${request['reason']}"),
-                              if (request['file_url'] != null)
-                                TextButton(
-                                  onPressed: () {
-                                    final link = convertToDirectDownloadLink(request['file_url']);
-                                    setState(() {
-                                      imageUrl = link;
-                                    });
-                                  },
-                                  child: Text("View attached file"),
-                                ),
-                              if (imageUrl != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10.0),
-                                  child: Image.network(imageUrl!),
-                                ),
-                            ],
+                    return SingleChildScrollView(
+                      child: AlertDialog(
+                        title: Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Center(child: Text("${request['title']}")),
+                        ),
+                        content: IntrinsicHeight( // Bọc content bằng IntrinsicHeight
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Sinh viên: ${request['student_account']['last_name']} ${request['student_account']['first_name']}"),
+                                Text("Ngày xin nghỉ: ${request['absence_date']}"),
+                                Text("Lý do: ${request['reason']}"),
+                                if (request['file_url'] != null)
+                                  TextButton(
+                                    onPressed: () {
+                                      final link = convertToDirectDownloadLink(request['file_url']);
+                                      setState(() {
+                                        imageUrl = link;
+                                      });
+                                    },
+                                    child: Text("View attached file"),
+                                  ),
+                                if (imageUrl != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10.0),
+                                    child: Image.network(imageUrl!),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
+                        actions: [
+                          if (request['status'] == 'PENDING')
+                            TextButton(
+                              onPressed: () {
+                                _updateAbsenceRequestStatus(request['id'], "REJECTED");
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Reject", style: TextStyle(color: Colors.red)),
+                            ),
+                          if (request['status'] == 'PENDING')
+                            TextButton(
+                              onPressed: () {
+                                _updateAbsenceRequestStatus(request['id'], "ACCEPTED");
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Accept", style: TextStyle(color: Colors.green)),
+                            ),
+                        ],
                       ),
-                      actions: [
-                        if (request['status'] == 'PENDING')
-                          TextButton(
-                            onPressed: () {
-                              _updateAbsenceRequestStatus(request['id'], "REJECTED");
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Reject", style: TextStyle(color: Colors.red)),
-                          ),
-                        if (request['status'] == 'PENDING')
-                          TextButton(
-                            onPressed: () {
-                              _updateAbsenceRequestStatus(request['id'], "ACCEPTED");
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Accept", style: TextStyle(color: Colors.green)),
-                          ),
-                      ],
                     );
                   },
                 ),
