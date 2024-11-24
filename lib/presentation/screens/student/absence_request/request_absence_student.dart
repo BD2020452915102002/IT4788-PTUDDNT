@@ -7,6 +7,7 @@ import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
+
 class LeaveRequestScreen extends StatefulWidget {
   final String classId;
 
@@ -18,7 +19,9 @@ class LeaveRequestScreen extends StatefulWidget {
 
 class LeaveRequestScreenState extends State<LeaveRequestScreen> {
   final TextEditingController _reasonController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+
   File? _selectedFile;
   final _picker = ImagePicker();
   DateTime? _selectedDate;
@@ -29,13 +32,12 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
   @override
   void initState() {
     super.initState();
-    _getToken();
+    token = Token().get();
   }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
   }
-
 
   @override
   void dispose() {
@@ -44,9 +46,6 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
     super.dispose();
   }
 
-  Future<void> _getToken() async {
-    token = (await Token().get())!;
-  }
   Future<void> _pickFile() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -114,13 +113,14 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
       _showCustomSnackBar('Vui lòng điền đầy đủ thông tin', context);
       return;
     }
-
+    if (_selectedFile == null || _selectedDate == null) {
+      _showCustomSnackBar('Vui lòng chọn tệp và ngày xin nghỉ', context);
+      return;
+    }
     if (token == '') {
-      print('duc ${token}');
       _showCustomSnackBar('Token không hợp lệ', context);
       return;
     }
-
     setState(() {
       _isSubmitting = true;
     });
@@ -130,8 +130,9 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
     final request = http.MultipartRequest('POST', url)
       ..fields['token'] = token
       ..fields['classId'] = widget.classId
+      ..fields['reason'] = _reasonController.text
       ..fields['date'] = _selectedDate != null ? DateFormat('yyyy-MM-dd').format(_selectedDate!) : ''
-      ..fields['reason'] = _reasonController.text;
+      ..fields['title'] = _titleController.text;
 
     if (_selectedFile != null) {
       request.files.add(await http.MultipartFile.fromPath(
@@ -140,9 +141,7 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
         filename: path.basename(_selectedFile!.path),
       ));
     }
-
     final response = await request.send();
-
     setState(() {
       _isSubmitting = false;
     });
@@ -153,26 +152,6 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
       final responseBody = await response.stream.bytesToString();
       _showCustomSnackBar('Gửi yêu cầu thất bại: $responseBody', context);
     }
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.black),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          filled: true,
-          fillColor: Colors.grey[200],
-        ),
-      ),
-    );
   }
 
   @override
@@ -188,9 +167,8 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
         title: const Text(
           "Xin phép nghỉ học",
           style: TextStyle(
-              color: AppColors.tertiary,
-              fontStyle: FontStyle.normal,
-              fontFamily: "Roboto"
+            color: AppColors.tertiary,
+            fontStyle: FontStyle.normal,
           ),
         ),
         centerTitle: true,
@@ -204,31 +182,80 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Đơn xin nghỉ",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: AbsorbPointer(
-                      child: _buildTextField("Ngày xin nghỉ", _dateController),
+                  const SizedBox(height: 8),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Title",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  _buildTextField("Lý do", _reasonController, maxLines: 3),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _titleController,
+                    onChanged: (value) {
+                    },
+                    decoration: InputDecoration(
+                      hintText: "Nhập tiêu đề",
+                      hintStyle: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: BorderSide(
+                          color: AppColors.primary,
+                          width: 2.0,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Lý do",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    _reasonController,
+                    maxLines: 4,
+                    hintText: "Nhập lý do",
+                    hintStyle: TextStyle(
+                      fontSize: 16,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+
+
                   const SizedBox(height: 16),
+
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(100, 50),
                       maximumSize: const Size(160, 50),
-                      backgroundColor: AppColors.subColorSecondary,
+                      backgroundColor: AppColors.primary,
                     ),
                     onPressed: _pickFile,
                     child: Row(
                       children: [
                         const Icon(
                           Icons.attach_file,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -236,7 +263,7 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                             _selectedFile == null
                                 ? "Nộp minh chứng"
                                 : "File đã chọn: ${path.basename(_selectedFile!.path)}",
-                            style: const TextStyle(color: Colors.black),
+                            style: const TextStyle(color: Colors.white, fontStyle: FontStyle.italic),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
@@ -244,6 +271,26 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                       ],
                     ),
                   ),
+
+                  const SizedBox(height: 20),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Ngày xin nghỉ",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickDate,
+                    child: AbsorbPointer(
+                      child: _buildTextField(_dateController),
+                    ),
+                  ),
+
                   const SizedBox(height: 20),
                 ],
               ),
@@ -265,6 +312,33 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    {
+      int maxLines = 1,
+      String? hintText,
+      TextStyle? hintStyle
+    }
+  ){
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: hintStyle,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          filled: true,
+          fillColor: Colors.grey[200],
+        ),
       ),
     );
   }

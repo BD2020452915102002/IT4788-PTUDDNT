@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
 
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
         final classData = data['data'];
         await HiveService().saveData(
             'page_content', classData['page_content'] as List<dynamic>);
@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
 
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
         final classData = data['data'];
         await HiveService().addToList('page_content', classData['page_content'] as List<dynamic>);
         await HiveService().saveData('page_info', classData['page_info']);

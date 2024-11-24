@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
         });
         return;
       }
-
+      print('Khang ${Token().get()}');
       final res = await ApiClass().post('/get_class_list', {
         "token": Token().get(),
         "role": "LECTURER",
@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
       });
 
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
         final classData = data['data'];
         await HiveService().saveData('page_content', classData['page_content'] as List<dynamic>);
         await HiveService().saveData('page_info', classData['page_info']);
@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
       });
 
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
         final classData = data['data'];
         await HiveService().addToList('page_content', classData['page_content'] as List<dynamic>);
         await HiveService().saveData('page_info', classData['page_info']);

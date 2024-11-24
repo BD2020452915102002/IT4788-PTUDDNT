@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:path/path.dart';
 import 'package:ptuddnt/presentation/screens/class_info.dart';
 import '../presentation/screens/forgot_password_screen.dart';
 import '../presentation/screens/lecturer/attendance_screen_lecture.dart';
@@ -15,6 +16,8 @@ import '../presentation/screens/student/class/detail_class_screen_student.dart';
 import '../presentation/screens/student/class/list_assignment.dart';
 import '../presentation/screens/student/home_screen_layout_stu.dart';
 import '../presentation/screens/student/information_student_screen.dart';
+import '../presentation/screens/lecturer/absence_review/review_absence_request.dart';
+
 
 class AppRoutes {
   static final Map<String, WidgetBuilder> routes = {
@@ -57,7 +60,10 @@ class AppRoutes {
       final classId = ModalRoute.of(context)!.settings.arguments as String;
       return AttendanceRecordScreen(classId: classId);
     },
-
+    '/manager_absence_request': (context) {
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return ReviewRequestScreen(classId: classId);
+    },
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
     '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(), //parameter la {classId}
 
