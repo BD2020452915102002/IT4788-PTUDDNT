@@ -25,10 +25,7 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
   }
 
   Future<void> showError(response) async {
-    if (response.statusCode == 400) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Bad Request!")));
-    } else {
+
       final data = json.decode(response.body);
       final errorMessage = data['meta']['message'];
       ScaffoldMessenger.of(context)
@@ -39,7 +36,7 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
             .showSnackBar(SnackBar(content: Text(errorMessage)));
         await _logout();
       }
-    }
+
   }
 
   Future<void> _logout() async {
@@ -74,6 +71,16 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
     }
   }
 
+  Color _getAbsenceColor(int absenceCount) {
+    if (absenceCount > 3) {
+      return Colors.red; // Red for > 3 absences
+    } else if (absenceCount == 0) {
+      return Colors.green; // Green for 0 absences
+    } else {
+      return Colors.yellow; // Yellow for 1-2 absences
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,16 +92,25 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                Padding(
+                  Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: _absenceCountController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: 'Total Absences',
-                      border: OutlineInputBorder(),
-                      fillColor: AppColors.tertiary,
-                      filled: true,
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Số buổi nghỉ học: ',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColor, // Base text color
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '${_absenceCountController.text}', // Dynamically set the absence count
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: _getAbsenceColor(int.tryParse(_absenceCountController.text) ?? 0),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

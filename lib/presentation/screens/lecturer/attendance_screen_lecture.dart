@@ -19,6 +19,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
   String _token = '';
   String _date = '';
+  String _dateNow = '';
   String _classId = '';
   final TextEditingController _dateController = TextEditingController();
 
@@ -53,6 +54,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
       setState(() {
         _date = formatDate(DateTime.now());
         _dateController.text = _date;
+        _dateNow = _date;
         fetchStudents();
       });
     });
@@ -161,17 +163,13 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   }
 
   Future<void> showError(response) async {
-    if(response.statusCode == 400){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No Data!")));
-    } else{
-      final data = json.decode(response.body);
-      final errorMessage = data['meta']['message'];
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+    final data = json.decode(response.body);
+    final errorMessage = data['meta']['message'];
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
 
-      if (data['meta']['code'] == 9998) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
-        _logout();
-      }
+    if (data['meta']['code'] == 9998) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+      _logout();
     }
   }
 
@@ -223,7 +221,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     final response = await ApiClass().post('/take_attendance', {
       "token": _token,
       "class_id": _classId,
-      "date": _date,
+      "date": _dateNow,
       "attendance_list": absenceList,
     });
 
@@ -302,6 +300,13 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    // Calculate column widths as percentages of the screen width
+    double indexColumnWidth = screenWidth * 0.1;
+    double idColumnWidth = screenWidth * 0.2;   // 20% of screen width
+    double nameColumnWidth = screenWidth * 0.5; // 50% of screen width
+    double absenceColumnWidth = screenWidth * 0.2; // 30% of screen width
     return Scaffold(
       appBar: AppBar(
         title: const Text('ĐIỂM DANH'),
@@ -326,49 +331,206 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
               children: [
                 Column(
                   children: [
+                    Table(
+                      columnWidths: {
+                        0: FixedColumnWidth(indexColumnWidth),
+                        1: FixedColumnWidth(idColumnWidth),
+                        2: FixedColumnWidth(nameColumnWidth),
+                        3: FixedColumnWidth(absenceColumnWidth),
+                      },
+                      border: TableBorder.all(color: AppColors.tertiary), // Add border to table
+                      children: [
+                        // Table Header with sorting functionality
+                        TableRow(
+                          decoration: BoxDecoration(color: Colors.blue), // Header row background color
+                          children: [
+                            SizedBox(
+                              height: 50, // Header row height
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        'ID',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                _sortTable1(0, !sortAscending1);
+                              },
+                              child: SizedBox(
+                                height: 50, // Header row height
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          'MSSV',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      sortColumnIndex1 == 0
+                                          ? (sortAscending1
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward)
+                                          : null,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                _sortTable1(1, !sortAscending1);
+                              },
+                              child: SizedBox(
+                                height: 50, // Header row height
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          'Họ và tên',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      sortColumnIndex1 == 1
+                                          ? (sortAscending1
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward)
+                                          : null,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                                height: 50, // Header row height
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          'Vắng',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+
+                                  ],
+                                ),
+                              ),
+
+                          ],
+                        ),
+                      ],
+                    ),
                     SizedBox(
-                      height: 400,
+
+                      height: 300,
                       width: MediaQuery.of(context).size.width,
                       child: isLoading ? Center(child: CircularProgressIndicator())
-                          : SingleChildScrollView(
-                        child: DataTable(
-                          sortColumnIndex: sortColumnIndex1,
-                          sortAscending: sortAscending1,
+                          :
+                          Expanded(
+                            child: SingleChildScrollView(
+                            child: Table(
+                              columnWidths: {
+                                0: FixedColumnWidth(indexColumnWidth),
+                                1: FixedColumnWidth(idColumnWidth),  // ID column width = 100
+                                2: FixedColumnWidth(nameColumnWidth),  // Name column width = 200
+                                3: FixedColumnWidth(absenceColumnWidth),  // Absence column width = 100
+                              },
+                              border: TableBorder.all(color: Colors.grey),
+                              children: students.asMap().entries.map((entry) {
+                                final index = entry.key;   // This gives you the index of the student
+                                final student = entry.value; // This gives you the student data
+                                Color boxColor = (index % 2 == 0 ? Colors.white : AppColors.tertiary);
 
-                          columns: [
-                            DataColumn(
-                              label: const Text("ID"),
-                              onSort: (columnIndex, ascending) => _sortTable1(columnIndex, ascending),
+                                return TableRow(
+                                  decoration: BoxDecoration(color: boxColor),
+                                  children: [
+                                    SizedBox(
+                                      height: 50,
+                                      child: Center(child: Text((index+ 1).toString())),
+                                    ),
+                                    SizedBox(
+                                      height: 50, // Row height
+                                      child: Center(child: Text(student['student_id']!)),
+                                    ),
+                                    SizedBox(
+                                      height: 50, // Row height
+                                      child: Center(child: Text('${student['first_name']} ${student['last_name']}')),
+                                    ),
+                                    SizedBox(
+                                      height: 50, // Row height
+                                      child: Center(
+                                        child: Checkbox(
+                                          value: absenceList.contains(student['student_id']),
+                                          onChanged: (value) => _onCheckboxChanged(value, student['student_id']),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
                             ),
-                            DataColumn(
-                              label: const Text("Họ và tên"),
-                              onSort: (columnIndex, ascending) => _sortTable1(columnIndex, ascending),
-                            ),
-                            const DataColumn(label: Text("Vắng")),
-                          ],
-                          rows: students.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final student = entry.value;
+                          ),
 
-                            return DataRow(
-                              cells: [
-                                DataCell(Text(student['student_id'].toString())),
-                                DataCell(Text('${student['first_name']} ${student['last_name']}')),
-                                DataCell(
-                                  Checkbox(
-                                    value: absenceList.contains(student['student_id'].toString()),
-                                    onChanged: (value) {
-                                      _onCheckboxChanged(value, student['student_id'].toString());
-                                    },
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                          ),
+
                     ),
                     SizedBox(height: 20),
+                    Table(
+
+                        columnWidths: {
+                          0: FixedColumnWidth(indexColumnWidth),
+                          1: FixedColumnWidth(idColumnWidth + nameColumnWidth),
+                          2: FixedColumnWidth(absenceColumnWidth),
+                        },
+                        border: TableBorder.all(color: AppColors.tertiary), // Add border to table
+                        children: [
+                          // Table Header
+                          TableRow(
+                            decoration: BoxDecoration(color: Colors.blue), // Header row background color
+
+                            children: [
+                              SizedBox(
+                                height: 50, // Header row height
+                                child: Center(child: Text('Tổng', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                              ),
+                              SizedBox(
+                                height: 50, // Header row height
+                                child: Center(child: Text("Số SV: " + students.length.toString(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                              ),
+                              SizedBox(
+                                height: 50, // Header row height
+                                child: Center(child: Text(absenceList.length.toString(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                              ),
+                            ],
+                          ),
+                        ]
+                    ),
+                    SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () async {
                         showLoadingDialog(context);
@@ -429,50 +591,181 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                       ),
                     ),
                     Expanded(
-
-                      child: isLoading
-                          ? Center(child: CircularProgressIndicator())
-                          : SingleChildScrollView(
-                        child: DataTable(
-                          sortColumnIndex: sortColumnIndex2,
-                          sortAscending: sortAscending2,
-
-                          columns: [
-                            DataColumn(
-                              label: const Text("ID"),
-                              onSort: (columnIndex, ascending) => _sortTable2(columnIndex, ascending),
-                            ),
-                            DataColumn(
-                              label: const Text("Họ và tên"),
-                              onSort: (columnIndex, ascending) => _sortTable2(columnIndex, ascending),
-                            ),
-                            const DataColumn(label: Text("Trạng thái")),
-                          ],
-                          rows: attendanceDetails.map((attendance) {
-                            return DataRow(
-                              cells: [
-                                DataCell(Text(attendance['student_id'].toString())),
-                                DataCell(Text('${attendance['first_name']} ${attendance['last_name']}')),
-                                DataCell(
-                                  DropdownButton<String>(
-                                    value: attendance['status'],
-                                    onChanged: (newValue) {
-                                      setState(() {
-                                        attendance['status'] = newValue; // Update the status in the attendance list
-                                        changeAbsenceStatus(attendance['attendance_id'], newValue);
-                                      });
-                                    },
-                                    items: const [
-                                      DropdownMenuItem(value: 'EXCUSED_ABSENCE', child: Text('Có Phép')),
-                                      DropdownMenuItem(value: 'UNEXCUSED_ABSENCE', child: Text('Không phép')),
-                                      DropdownMenuItem(value: 'PRESENT', child: Text('Có mặt')),
-                                    ],
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // Ensures that the Column doesn't take extra space
+                        children: [
+                          // Table Header with sorting functionality
+                          Table(
+                            columnWidths: {
+                              0: FixedColumnWidth(indexColumnWidth),
+                              1: FixedColumnWidth(idColumnWidth),
+                              2: FixedColumnWidth(nameColumnWidth),
+                              3: FixedColumnWidth(absenceColumnWidth),
+                            },
+                            border: TableBorder.all(color: AppColors.tertiary),
+                            children: [
+                              TableRow(
+                                decoration: BoxDecoration(color: Colors.blue),
+                                children: [
+                                  SizedBox(
+                                    height: 50,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Center(
+                                            child: Text(
+                                              'ID',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold, color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
+                                  InkWell(
+                                    onTap: () {
+                                      _sortTable2(0, !sortAscending2);
+                                    },
+                                    child: SizedBox(
+                                      height: 50,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                'MSSV',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold, color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(
+                                            sortColumnIndex2 == 0
+                                                ? (sortAscending2
+                                                ? Icons.arrow_upward
+                                                : Icons.arrow_downward)
+                                                : null,
+                                            color: Colors.white,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      _sortTable2(1, !sortAscending2);
+                                    },
+                                    child: SizedBox(
+                                      height: 50,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                'Họ và tên',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold, color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(
+                                            sortColumnIndex2 == 1
+                                                ? (sortAscending2
+                                                ? Icons.arrow_upward
+                                                : Icons.arrow_downward)
+                                                : null,
+                                            color: Colors.white,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 50,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Center(
+                                            child: Text(
+                                              'Vắng',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold, color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          // Space after the header if needed
+                          SizedBox(height: 10), // Optional
+                          // Data Table for attendance
+                          isLoading
+                              ? Center(child: CircularProgressIndicator())
+                              : SizedBox(
+                            height: 200,
+                            child: SingleChildScrollView(
+                              child: Table(
+                                columnWidths: {
+                                  0: FixedColumnWidth(indexColumnWidth),
+                                  1: FixedColumnWidth(idColumnWidth),  // ID column width = 100
+                                  2: FixedColumnWidth(nameColumnWidth),  // Name column width = 200
+                                  3: FixedColumnWidth(absenceColumnWidth),  // Absence column width = 100
+                                },
+                                border: TableBorder.all(color: AppColors.textColor),
+                                children: attendanceDetails.asMap().entries.map((entry) {
+                                  final index = entry.key;   // This gives you the index of the student
+                                  final attendance = entry.value; // This gives you the student data
+                                  Color boxColor = (index % 2 == 0 ? Colors.white : AppColors.tertiary);
+                                  return TableRow(
+                                    decoration: BoxDecoration(color: boxColor),
+                                    children: [
+                                      SizedBox(
+                                        height: 50,  // Row height
+                                        child: Center(child: Text((index + 1).toString())),
+                                      ),
+                                      SizedBox(
+                                        height: 50,  // Row height
+                                        child: Center(child: Text(attendance['student_id'].toString())),
+                                      ),
+                                      SizedBox(
+                                        height: 50,  // Row height
+                                        child: Center(child: Text('${attendance['first_name']} ${attendance['last_name']}')),
+                                      ),
+                                      SizedBox(
+                                        height: 50,  // Row height
+                                        child: Center(
+                                          child: DropdownButton<String>(
+                                            value: attendance['status'],
+                                            onChanged: (newValue) {
+                                              setState(() {
+                                                attendance['status'] = newValue;
+                                                changeAbsenceStatus(attendance['attendance_id'], newValue);
+                                              });
+                                            },
+                                            items: const [
+                                              DropdownMenuItem(value: 'EXCUSED_ABSENCE', child: Text('Có Phép')),
+                                              DropdownMenuItem(value: 'UNEXCUSED_ABSENCE', child: Text('Không phép')),
+                                              DropdownMenuItem(value: 'PRESENT', child: Text('Có mặt')),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+
+                            ),
+                          ),
+                          Table(
+
+                          ),
+                        ],
                       ),
                     ),
                   ],

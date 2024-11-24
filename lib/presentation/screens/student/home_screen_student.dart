@@ -171,7 +171,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     try {
       final res = await ApiClass().post('/register_class', {
         "token": Token().get(),
-        "role": HiveService().getData('userData')['role'],
+        //"role": HiveService().getData('userData')['role'],
         "class_ids": classIds
       });
       if (res.statusCode == 200) {
