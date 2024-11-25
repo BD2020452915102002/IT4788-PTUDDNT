@@ -7,7 +7,8 @@ import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Future<void> Function() fetchUnreadNotificationsCount;
+  const HomeScreen({super.key,  required this.fetchUnreadNotificationsCount});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -306,6 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       page = 0;
     });
+    await widget.fetchUnreadNotificationsCount();
     await fetchClassList();
     setState(() {
       _classList = HiveService().getData('page_content');
@@ -510,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               title: const Text('Đăng xuất'),
-              onTap: () {
+              onTap: ()   {
                 HiveService().clearBox();
                 if (!mounted) return;
                 // Navigator.pushNamed(context, '/login');

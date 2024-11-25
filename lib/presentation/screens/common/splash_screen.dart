@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,9 +18,14 @@ class _SplashScreenState extends State<SplashScreen> {
     _rejectLogin();
   }
   Future<void> _rejectLogin() async {
+    final data = HiveService().getData('userData');
     Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/login');
+      if (data == null ){
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     });
   }
 

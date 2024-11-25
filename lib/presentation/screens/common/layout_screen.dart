@@ -199,13 +199,13 @@ class _NavigationState extends State<Navigation> {
       ),
       body: role == 'STUDENT'
           ? <Widget>[
-              HomeScreen(),
+              HomeScreen(fetchUnreadNotificationsCount:setCount),
               ListAssignment(),
               // ChatScreen(),
               NotifycationScreen(fetchUnreadNotificationsCount: setCount)
             ][currentPageIndex]
           : <Widget>[
-              HomeScreen(),
+              HomeScreen(fetchUnreadNotificationsCount:setCount),
               // ChatScreen(),
               NotifycationScreen(fetchUnreadNotificationsCount: setCount)
             ][currentPageIndex],

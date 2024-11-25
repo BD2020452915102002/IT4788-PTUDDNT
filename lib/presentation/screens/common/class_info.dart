@@ -453,7 +453,7 @@ class _ClassInfoState extends State<ClassInfo> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen(fetchUnreadNotificationsCount: () async{},)),
         );
       }
     } catch (e) {
@@ -511,53 +511,53 @@ class _ClassInfoState extends State<ClassInfo> {
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Mã lớp: ${classData!['class_id']}',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text('Loại lớp: ${classData!['class_type']}'),
-                    Text('Giảng viên: ${classData!['lecturer_name']}'),
-                    Text('Số lượng sinh viên: ${classData!['student_count']}'),
-                    Text(
-                        'Thời gian: ${classData!['start_date']} - ${classData!['end_date']}'),
-                    Text('Trạng thái: ${classData!['status']}'),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Danh sách sinh viên:',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    classData!['student_accounts'].isEmpty
-                        ? Text('Không có sinh viên trong lớp học')
-                        : Expanded(
-                            child: ListView.builder(
-                              itemCount: classData!['student_accounts'].length,
-                              itemBuilder: (context, index) {
-                                final student =
-                                    classData!['student_accounts'][index];
-                                return Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 5),
-                                  child: ListTile(
-                                    title: Text(
-                                        '${student['first_name']} ${student['last_name']}'),
-                                    subtitle: Text(student['email']),
-                                    trailing:
-                                        Text('ID: ${student['student_id']}'),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                  ],
+            : classData == null ? Center(child: Text('Lỗi không tải được thông tin lớp học vui lòng thử lại'),):Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Mã lớp: ${classData!['class_id']}',
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text('Loại lớp: ${classData!['class_type']}'),
+              Text('Giảng viên: ${classData!['lecturer_name']}'),
+              Text('Số lượng sinh viên: ${classData!['student_count']}'),
+              Text(
+                  'Thời gian: ${classData!['start_date']} - ${classData!['end_date']}'),
+              Text('Trạng thái: ${classData!['status']}'),
+              const SizedBox(height: 20),
+              const Text(
+                'Danh sách sinh viên:',
+                style:
+                TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              classData!['student_accounts'].isEmpty
+                  ? Text('Không có sinh viên trong lớp học')
+                  : Expanded(
+                child: ListView.builder(
+                  itemCount: classData!['student_accounts'].length,
+                  itemBuilder: (context, index) {
+                    final student =
+                    classData!['student_accounts'][index];
+                    return Card(
+                      margin:
+                      const EdgeInsets.symmetric(vertical: 5),
+                      child: ListTile(
+                        title: Text(
+                            '${student['first_name']} ${student['last_name']}'),
+                        subtitle: Text(student['email']),
+                        trailing:
+                        Text('ID: ${student['student_id']}'),
+                      ),
+                    );
+                  },
                 ),
               ),
+            ],
+          ),
+        ),
         bottomNavigationBar:
             HiveService().getData('userData')['role'] == 'LECTURER'
                 ? BottomNavigationBar(
