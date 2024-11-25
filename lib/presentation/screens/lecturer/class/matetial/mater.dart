@@ -48,27 +48,62 @@ class _MaterialScreenState extends State<MaterialScreen>{
     setState(() {
       isLoading = true;
     });
-  try{
-    final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_list').replace(
-        queryParameters: {
+    try {
+      final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_list');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
           'token': widget.token,
           'class_id': widget.classId,
-        },
-    );
-    final response = await http.get(uri);
-    print('Token: ${widget.token}');
-    print('Class ID: ${widget.classId}');
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      if (jsonResponse != null && jsonResponse['data'] != null) {
-        await HiveService().saveData('tailieu', jsonResponse['data']);
+        }),
+      );
+
+      print('Token: ${widget.token}');
+      print('Class ID: ${widget.classId}');
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (jsonResponse != null && jsonResponse['data'] != null) {
+          await HiveService().saveData('tailieu', jsonResponse['data']);
+        }
+      } else {
+        throw Exception('Lỗi khi lấy dữ liệu: ${response.statusCode}');
       }
-    } else {
-      throw Exception('Lỗi khi lấy dữ liệu: ${response.statusCode}');
+    } catch (e) {
+      print('Đã xảy ra lỗi: $e');
     }
-  }catch(e){
-    print('Đã xảy ra lỗi: $e');
   }
+  Future<void> reloadData() async {
+    try {
+      // Lấy dữ liệu hiện tại từ Hive
+      final currentData = HiveService().getData('tailieu');
+      print('Current Hive Data: $currentData');
+
+      // Xóa dữ liệu cũ trong Hive
+      await HiveService().saveData('tailieu', null);
+      print('Old data removed from Hive.');
+
+      // Tải dữ liệu mới từ API
+      await fetchMaterials(widget.token, widget.classId);
+      print('New data fetched from API.');
+
+      // Lấy dữ liệu mới từ Hive
+      final newData = HiveService().getData('tailieu');
+      setState(() {
+        materials = (newData as List)
+            .map((json) => MaterialClass.fromJson(json))
+            .toList();
+        isLoading = false;
+      });
+
+      print('New data loaded to screen: ${materials.length} items.');
+    } catch (e) {
+      print('Error in reloadData: $e');
+    }
   }
 
   Future<void> _launchURL(String url) async {
@@ -81,34 +116,33 @@ class _MaterialScreenState extends State<MaterialScreen>{
   }
   Future<MaterialClass> fetchMaterialDetails(String materialId, String token) async {
     try {
+      final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_info');
 
-      final uri = Uri.parse(
-          'http://157.66.24.126:8080/it5023e/get_material_info')
-          .replace(queryParameters: {
-        'token': widget.token,
-        'material_id': materialId ,
-      });
       print('Token: ${widget.token}');
-      print('Material ID: ${materialId}');
+      print('Material ID: $materialId');
 
-      final response = await http.get(
+      final response = await http.post(
         uri,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'token': widget.token,
+          'material_id': materialId,
+        }),
       );
+
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
         final data = jsonResponse['data'];
         print('Decoded data: $data');
         return MaterialClass.fromJson(data);
-
-        // final data = jsonDecode(response.body);
-        // print('Decoded data: $data');
-        // return MaterialClass.fromJson(data);
       } else {
         throw Exception(
-            'Failed to load material details ${response.statusCode}');
+            'Failed to load material details: ${response.statusCode}');
       }
     } catch (e) {
       print('Đã xảy ra lỗi: $e');
@@ -170,64 +204,66 @@ class _MaterialScreenState extends State<MaterialScreen>{
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : materials.isEmpty
-          ? Center(child: Text("No material found."))
-          : Stack(
-          children: [
-            ListView.builder(
-              itemCount: materials.length,
-              itemBuilder: (context, index) {
-                final material = materials[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (index == 0) const SizedBox(height: 10.0),
-                    Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: ListTile(
-                        title: Text(material.title),
-                        subtitle: Text(material.description),
-                        trailing: Text(material.materialType),
-                        onTap: () {
-                          _showMaterialDetailsDialog(context, material.id.toString(), widget.token);
-                        },
-                      ),
-                    ),
-                  ],
-                );
+      body: Stack(
+        children: [
+          if (isLoading)
+            Center(child: CircularProgressIndicator())
+          else if (materials.isEmpty)
+            Center(child: Text("No material found."))
+          else
+            RefreshIndicator(
+              onRefresh: () async {
+                  await reloadData();
               },
-            ),
-            Positioned(
-              bottom: 50.0,
-              right: 20.0,
-              child: FloatingActionButton(
-                onPressed: () async {
-                  print('Token press: ${widget.token}');
-                  print('Class ID press create: ${widget.classId}');
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => CreateMaterialScreen(
-                      token: widget.token,
-                      classId: widget.classId,
-                    )),
+              child: ListView.builder(
+                itemCount: materials.length,
+                itemBuilder: (context, index) {
+                  final material = materials[index];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (index == 0) const SizedBox(height: 10.0),
+                      Card(
+                        margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: ListTile(
+                          title: Text(material.title),
+                          subtitle: Text(material.description),
+                          trailing: Text(material.materialType),
+                          onTap: () {
+                            _showMaterialDetailsDialog(
+                                context, material.id.toString(), widget.token);
+                          },
+                        ),
+                      ),
+                    ],
                   );
-                  if (result == true) {
-                    setState(() {
-                      isReloading = true; // Set trạng thái reload
-                      loadMater();
-                    });
-                  }
                 },
-                child: Icon(Icons.add),
-                backgroundColor: Color(0xFFC02135),
-                foregroundColor: Color(0xFFF2C209),
               ),
             ),
-          ],
-        ),
-
+          Positioned(
+            bottom: 50.0,
+            right: 20.0,
+            child: FloatingActionButton(
+              onPressed: () async {
+                print('Token press: ${widget.token}');
+                print('Class ID press create: ${widget.classId}');
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateMaterialScreen(
+                      token: widget.token,
+                      classId: widget.classId,
+                    ),
+                  ),
+                );
+              },
+              child: Icon(Icons.add),
+              backgroundColor: Color(0xFFC02135),
+              foregroundColor: Color(0xFFF2C209),
+            ),
+          ),
+        ],
+      ),
     );
   }
   void _showMaterialDetailsDialog(BuildContext context, String materialId, String token ) async {

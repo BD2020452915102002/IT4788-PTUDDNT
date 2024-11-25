@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/colors.dart';
+import '../../../../../core/utils/hive.dart';
 import '../../../../../data/models/material.dart';
 
 
@@ -26,41 +27,61 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
   @override
   void initState() {
     super.initState();
-    loadMater();
+    _init();
   }
-  Future<void> loadMater() async {
-    materials = await fetchMaterials(widget.token, widget.classId );
-
+  Future<void> _init () async {
+    final tl = HiveService().getData('tailieu');
+    if ( tl == null ){
+      await loadMater();
+    }
     setState(() {
+      materials = (HiveService().getData('tailieu') as List).map((json) => MaterialClass.fromJson(json)).toList();
       isLoading = false;
     });
   }
-  Future<List<MaterialClass>> fetchMaterials(String token, String classId) async {
-    try{
-      final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_list').replace(
-        queryParameters: {
-          'token': widget.token,
-          'class_id': widget.classId,
+  Future<void> loadMater() async {
+    await fetchMaterials(widget.token, widget.classId );
+  }
+  Future<void> fetchMaterials(String token, String classId) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_list');
+      print('Token: $token');
+      print('Class ID: $classId');
+
+      // Body request
+      final body = jsonEncode({
+        'token': token,
+        'class_id': classId,
+      });
+
+      // POST request
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json', // Chỉ định kiểu nội dung
         },
+        body: body, // Truyền body request
       );
-      final response = await http.get(uri);
-      print('Token: ${widget.token}');
-      print('Class ID: ${widget.classId}');
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (jsonResponse != null && jsonResponse['data'] != null) {
-          final data = jsonResponse['data'] as List;
-          return data.map((json) => MaterialClass.fromJson(json)).toList();
+          await HiveService().saveData('tailieu', jsonResponse['data']);
         }
       } else {
         throw Exception('Lỗi khi lấy dữ liệu: ${response.statusCode}');
       }
-    }catch(e){
+    } catch (e) {
       print('Đã xảy ra lỗi: $e');
     }
-    return [];
   }
+
 
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
@@ -72,31 +93,33 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
   }
   Future<MaterialClass> fetchMaterialDetails(String materialId, String token) async {
     try {
+      final uri = Uri.parse('http://157.66.24.126:8080/it5023e/get_material_info');
+      print('Token: $token');
+      print('Material ID: $materialId');
 
-      final uri = Uri.parse(
-          'http://157.66.24.126:8080/it5023e/get_material_info')
-          .replace(queryParameters: {
-        'token': widget.token,
-        'material_id': materialId ,
+      // Body request
+      final body = jsonEncode({
+        'token': token,
+        'material_id': materialId,
       });
-      print('Token: ${widget.token}');
-      print('Material ID: ${materialId}');
 
-      final response = await http.get(
+      // POST request
+      final response = await http.post(
         uri,
+        headers: {
+          'Content-Type': 'application/json', // Chỉ định kiểu nội dung
+        },
+        body: body, // Truyền body request
       );
+
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
         final data = jsonResponse['data'];
         print('Decoded data: $data');
         return MaterialClass.fromJson(data);
-
-        // final data = jsonDecode(response.body);
-        // print('Decoded data: $data');
-        // return MaterialClass.fromJson(data);
       } else {
         throw Exception(
             'Failed to load material details ${response.statusCode}');
@@ -112,6 +135,35 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
       );
     }
   }
+  Future<void> reloadData() async {
+    try {
+      // Lấy dữ liệu hiện tại từ Hive
+      final currentData = HiveService().getData('tailieu');
+      print('Current Hive Data: $currentData');
+
+      // Xóa dữ liệu cũ trong Hive
+      await HiveService().saveData('tailieu', null);
+      print('Old data removed from Hive.');
+
+      // Tải dữ liệu mới từ API
+      await fetchMaterials(widget.token, widget.classId);
+      print('New data fetched from API.');
+
+      // Lấy dữ liệu mới từ Hive
+      final newData = HiveService().getData('tailieu');
+      setState(() {
+        materials = (newData as List)
+            .map((json) => MaterialClass.fromJson(json))
+            .toList();
+        isLoading = false;
+      });
+
+      print('New data loaded to screen: ${materials.length} items.');
+    } catch (e) {
+      print('Error in reloadData: $e');
+    }
+  }
+
   Future<void> _deleteMaterial(String id) async {
     print('Xóa Material: $id');
     print('Token: $widget.token');
@@ -161,39 +213,38 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : materials.isEmpty
-          ? Center(child: Text("No material found."))
-          : Stack(
-        children: [
-          ListView.builder(
-            itemCount: materials.length,
-            itemBuilder: (context, index) {
-              final material = materials[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (index == 0) const SizedBox(height: 10.0),
-                  Card(
-                    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: ListTile(
-                      title: Text(material.title),
-                      subtitle: Text(material.description),
-                      trailing: Text(material.materialType),
-                      onTap: () {
-                        _showMaterialDetailsDialog(context, material.id.toString(), widget.token);
-                      },
-                    ),
+      body: RefreshIndicator(
+        onRefresh: reloadData, // Gọi hàm reloadData khi kéo xuống
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : materials.isEmpty
+            ? Center(child: Text("No material found."))
+            : ListView.builder(
+          itemCount: materials.length,
+          itemBuilder: (context, index) {
+            final material = materials[index];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (index == 0) const SizedBox(height: 10.0),
+                Card(
+                  margin: EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: ListTile(
+                    title: Text(material.title),
+                    subtitle: Text(material.description),
+                    trailing: Text(material.materialType),
+                    onTap: () {
+                      _showMaterialDetailsDialog(context,
+                          material.id.toString(), widget.token);
+                    },
                   ),
-                ],
-              );
-            },
-          ),
-
-        ],
+                ),
+              ],
+            );
+          },
+        ),
       ),
-
     );
   }
   void _showMaterialDetailsDialog(BuildContext context, String materialId, String token ) async {

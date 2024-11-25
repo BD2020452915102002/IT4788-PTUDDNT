@@ -132,60 +132,111 @@ class _EditAssignmnetScreenState extends State<EditAssignmentScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_sharp),
+          icon: const Icon(
+            Icons.arrow_back_sharp,
+            color: Colors.white,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Text("Edit Assignment"),
         centerTitle: true,
+        title: Text(
+          "Sửa bài tập",
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.primary,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Căn trái các label
           children: [
+            // Tiêu đề Title
+            Text(
+              'Title:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Tiêu đề Description
+            Text(
+              'Description:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
+              maxLines: 5,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Tiêu đề Deadline
+            Text(
+              'Deadline:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             TextField(
               controller: deadlineController,
               readOnly: true,
               onTap: () => _selectDateTime(context),
-              decoration: InputDecoration(labelText: 'Deadline (YYYY-MM-DDTHH:MM:SS)'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC02135),
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
                 ),
-                elevation: 5,
-              ),
-              onPressed: selectFile,
-              child: Text(
-                selectedFile == null ? 'Choose File' : 'File: ${selectedFile!.path.split('/').last}',
               ),
             ),
-            // Nút lưu, cập nhật assignment
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC02135),
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 5,
-              ),
-              onPressed: saveChanges,
-              child: Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            const SizedBox(height: 32), // Tạo khoảng cách trước nút
+
+            // Các nút bấm được căn giữa
+            Center(
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFC02135),
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: selectFile,
+                    child: Text(
+                      selectedFile == null
+                          ? 'Choose File'
+                          : 'File: ${selectedFile!.path.split('/').last}',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFC02135),
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: saveChanges,
+                    child: Text(
+                      'Save',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
