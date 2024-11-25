@@ -36,24 +36,38 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
     try {
       final uri = Uri.parse(
         'http://157.66.24.126:8080/it5023e/get_material_info',
-      ).replace(queryParameters: {
+      );
+
+      // Tạo body request
+      final requestBody = {
         'token': widget.token,
         'material_id': widget.materialId,
-      });
-      final response = await http.get(uri);
+      };
+
+      // Gửi yêu cầu POST
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
 
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+        // Parse dữ liệu JSON
+        final responseData = jsonDecode(response.body);
         final data = responseData['data'];
 
+        // Gán dữ liệu vào các controller
         titleController.text = data['material_name'] ?? 'Unknown title';
         descriptionController.text = data['description'] ?? 'No description';
         materialTypeController.text = data['material_type'] ?? 'No type';
+
         print('Type_get: ${materialTypeController.text}');
       } else {
+        // Xử lý khi trạng thái HTTP không thành công
         throw Exception('Lỗi khi lấy dữ liệu: ${response.statusCode}');
       }
     } catch (e) {
+      // Bắt lỗi và in ra
       print('Đã xảy ra lỗi: $e');
     }
   }
@@ -98,6 +112,7 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
       );
       Navigator.pop(context, true);
       Navigator.pop(context, true);
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lưu thất bại: ${response.statusCode}')),
@@ -127,20 +142,49 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
         backgroundColor: AppColors.primary,
       ),
       body: Padding(
-
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Căn chỉnh tiêu đề sang trái
           children: [
+            // Title Section
+            const Text(
+              'Title',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 5),
             TextField(
               controller: titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 10),
+
+            // Description Section
+            const Text(
+              'Description',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 5),
             TextField(
               controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              maxLines: 5,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 10),
+
+            // Material Type Section
+            const Text(
+              'Material Type',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 5),
             DropdownButtonFormField<String>(
               value: ['PNG', 'PDF', 'DOC'].contains(materialTypeController.text)
                   ? materialTypeController.text
@@ -153,43 +197,56 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
                   materialTypeController.text = value ?? '';
                 });
               },
-              decoration: InputDecoration(labelText: 'Material Type'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a material type';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 15),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC02135),
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
                 ),
-                elevation: 5,
-              ),
-              onPressed: selectFile,
-              child: Text(
-                selectedFile == null ? 'Choose File' : 'File: ${selectedFile!.path.split('/').last}',
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC02135),
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 5,
-              ),
-              onPressed: saveChanges,
-              child: Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            const SizedBox(height: 30),
+
+            // Buttons Section
+            Center(
+              child: Column(
+                children: [
+                  // Choose File Button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC02135),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: selectFile,
+                    child: Text(
+                      selectedFile == null
+                          ? 'Choose File'
+                          : 'File: ${selectedFile!.path.split('/').last}',
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Save Button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC02135),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: saveChanges,
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -197,4 +254,6 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
       ),
     );
   }
+
+
 }

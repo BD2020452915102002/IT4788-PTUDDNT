@@ -57,11 +57,12 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
     final responseString = await response.stream.bytesToString();
     final responseData = jsonDecode(responseString);
 
-    if (responseData['code'] == 1000) {
+    if (response.statusCode == 201) {
       print("Material created successfully");
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Material created successfully!"))
       );
+      Navigator.pop(context, true);
       Navigator.pop(context, true);
     } else {
       print("Failed to create Material");
@@ -69,6 +70,7 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to create Material: ${responseData['message']}"))
       );
+      print("Failed to create Material: ${responseData['message']}");
     }
 
   }
@@ -97,29 +99,53 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'Title:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               TextFormField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: 'Title'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a title';
                   }
                   return null;
                 },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
+
+              // Tiêu đề "Description"
+              Text(
+                'Description:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               TextFormField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                maxLines: 5,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a description';
                   }
                   return null;
                 },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
+              Text(
+                'Material Type:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               DropdownButtonFormField<String>(
                 value: materialType,
                 items: ['PNG', 'PDF', 'DOC']
@@ -130,47 +156,61 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
                     materialType = value;
                   });
                 },
-                decoration: InputDecoration(labelText: 'Material Type'),
                 validator: (value) {
                   if (value == null) {
                     return 'Please select a material type';
                   }
                   return null;
                 },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
               ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFC02135),
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 5,
+              const SizedBox(height: 20),
+
+              // Nút "Pick File" và hiển thị tên file nếu đã chọn
+              Center(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFC02135),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: pickFile,
+                      child: Text(selectedFile != null ? "File Selected" : "Pick File"),
+                    ),
+                    if (selectedFileName != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'File đã chọn: $selectedFileName',
+                          style: TextStyle(fontSize: 16, color: Colors.blue),
+                        ),
+                      ),
+                  ],
                 ),
-                onPressed: pickFile,
-                child: Text(selectedFile != null ? "File Selected" : "Pick File"),
               ),
-              if (selectedFileName != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'File đã chọn: $selectedFileName',
-                    style: TextStyle(fontSize: 16, color: Colors.blue),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFC02135),
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    elevation: 5,
                   ),
+                  onPressed: _uploadMaterial,
+                  child: Text("Upload Material"),
                 ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFC02135),
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 5,
-                ),
-                onPressed: _uploadMaterial,
-                child: Text("Upload Material"),
               ),
             ],
           ),
@@ -178,4 +218,5 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
       ),
     );
   }
+
 }

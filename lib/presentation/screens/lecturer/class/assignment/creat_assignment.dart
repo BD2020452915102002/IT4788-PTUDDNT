@@ -91,6 +91,12 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
 
     if (response.statusCode == 200) {
       print("Survey created successfully");
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tạo Bài tập thành công!')),
+        );
+      });
+      Navigator.pop(context, true);
       Navigator.pop(context, true);
     } else {
       print("Failed to create survey");
@@ -158,56 +164,89 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Title:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             TextField(
               controller: titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
             ),
             const SizedBox(height: 16),
+            Text(
+              'Deadline:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+
+            ),
             TextField(
               controller: deadlineController,
               readOnly: true,
               onTap: () => _selectDateTime(context),
-              decoration: InputDecoration(labelText: 'Deadline (YYYY-MM-DDTHH:MM:SS)'),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
             ),
             const SizedBox(height: 16),
+            Text(
+              'Description:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             TextField(
               controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              maxLines: 5,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                ),
+              ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC02135),
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 5,
+            const SizedBox(height: 32), // Tạo khoảng cách trước nút bấm
+            Center(
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFC02135),
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: pickFile,
+                    child: Text(selectedFile != null ? "File Selected" : "Pick File"),
+                  ),
+                  if (selectedFileName != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'File đã chọn: $selectedFileName',
+                        style: TextStyle(fontSize: 16, color: Colors.blue),
+                      ),
+                    ),
+                  const SizedBox(height: 20), // Tạo khoảng cách giữa các nút
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFC02135),
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                    ),
+                    onPressed: createSurvey,
+                    child: Text("Create Survey"),
+                  ),
+                ],
               ),
-              onPressed: pickFile,
-              child: Text(selectedFile != null ? "File Selected" : "Pick File"),
-            ),
-            if (selectedFileName != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'File đã chọn: $selectedFileName',
-                  style: TextStyle(fontSize: 16, color: Colors.blue),
-                ),
-              ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC02135),
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 5,
-              ),
-              onPressed: createSurvey,
-              child: Text("Create Survey"),
             ),
           ],
         ),

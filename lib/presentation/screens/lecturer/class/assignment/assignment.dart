@@ -52,10 +52,9 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     assignments = await fetchAssignment(widget.token, widget.classId );
   }
   Future<List<Assignment>> fetchAssignment(String token, String classId) async {
-    final String apiUrl = 'http://157.66.24.126:8080/it5023e/get_all_surveys'; // Thay {{prefix}} bằng URL thực tế của bạn
+    final String apiUrl = 'http://157.66.24.126:8080/it5023e/get_all_surveys';
 
     try {
-      // Tạo body cho POST request
       final body = json.encode({
         'token': widget.token,
         'class_id': widget.classId,
@@ -65,7 +64,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {
-          'Content-Type': 'application/json', // Header bắt buộc
+          'Content-Type': 'application/json',
         },
         body: body,
       );
@@ -74,7 +73,8 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
 
       // Kiểm tra trạng thái phản hồi
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
+
         if (jsonResponse != null && jsonResponse['data'] != null) {
           await HiveService().saveData('baitap', jsonResponse['data']);
         }
@@ -110,11 +110,13 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       );
       if (response.statusCode == 200) {
         print('Xóa Assign thành công');
+
         setState(() {
+          fetchAssignment(widget.token, widget.classId);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Xóa thành công')),
           );
-          loadAssign();
+          Navigator.pop(context);
         });
       } else {
         print('Lỗi xóa assignmet: ${response.statusCode}');
@@ -134,6 +136,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     final expiredAssignments = assignments.where((assignment) {
       return assignment.deadline.isBefore(DateTime.now());
     }).toList();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -152,13 +155,13 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : assignments.isEmpty
-          ? Center(child: Text("No Assignmnet found."))
-          : Stack(
+      body: Stack(
         children: [
-          ListView(
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : assignments.isEmpty
+              ? Center(child: Text("No Assignment found."))
+              : ListView(
             children: [
               if (ongoingAssignments.isNotEmpty) ...[
                 const Padding(
@@ -177,27 +180,22 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                   itemCount: ongoingAssignments.length,
                   itemBuilder: (context, index) {
                     final assignment = ongoingAssignments[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          margin: EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                          child: ListTile(
-                            title: Text(assignment.title),
-                            subtitle: Text(assignment.description),
-                            trailing: Text(
-                              assignment.deadline
-                                  .toLocal()
-                                  .toString()
-                                  .split(' ')[0],
-                            ),
-                            onTap: () {
-                              _showAssignmentDetailsDialog(assignment);
-                            },
-                          ),
+                    return Card(
+                      margin: EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
+                      child: ListTile(
+                        title: Text(assignment.title),
+                        subtitle: Text(assignment.description),
+                        trailing: Text(
+                          assignment.deadline
+                              .toLocal()
+                              .toString()
+                              .split(' ')[0],
                         ),
-                      ],
+                        onTap: () {
+                          _showAssignmentDetailsDialog(assignment);
+                        },
+                      ),
                     );
                   },
                 ),
@@ -219,29 +217,23 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                   itemCount: expiredAssignments.length,
                   itemBuilder: (context, index) {
                     final assignment = expiredAssignments[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          margin: EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                          child: ListTile(
-                            title: Text(assignment.title),
-
-                            subtitle: Text(assignment.description),
-                            trailing: Text(
-                              assignment.deadline
-                                  .toLocal()
-                                  .toString()
-                                  .split(' ')[0],
-                              style: TextStyle(color: Colors.red),
-                            ),
-                            onTap: () {
-                              _showAssignmentDetailsDialog(assignment);
-                            },
-                          ),
+                    return Card(
+                      margin: EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
+                      child: ListTile(
+                        title: Text(assignment.title),
+                        subtitle: Text(assignment.description),
+                        trailing: Text(
+                          assignment.deadline
+                              .toLocal()
+                              .toString()
+                              .split(' ')[0],
+                          style: TextStyle(color: Colors.red),
                         ),
-                      ],
+                        onTap: () {
+                          _showAssignmentDetailsDialog(assignment);
+                        },
+                      ),
                     );
                   },
                 ),
@@ -278,7 +270,6 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
           ),
         ],
       ),
-
     );
   }
   void _showAssignmentDetailsDialog(Assignment assignment) {
