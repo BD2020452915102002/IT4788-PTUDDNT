@@ -15,7 +15,7 @@ import '../presentation/screens/student/class/detail_assignment_screen.dart';
 import '../presentation/screens/student/class/detail_class_screen_student.dart';
 import '../presentation/screens/student/class/list_assignment.dart';
 import '../presentation/screens/student/home_screen_layout_stu.dart';
-import '../presentation/screens/student/information_student_screen.dart';
+import '../presentation/screens/information_user.dart';
 import '../presentation/screens/lecturer/absence_review/review_absence_request.dart';
 
 
@@ -52,9 +52,9 @@ class AppRoutes {
       final classId = ModalRoute.of(context)!.settings.arguments as String;
       return ClassInfo(classId: classId);
     },
-    '/information-student': (context) {
+    '/information': (context) {
       final userId = ModalRoute.of(context)!.settings.arguments as String;
-      return StudentInfoScreen(userId: userId);
+      return InfoScreen(userId: userId);
     },
     '/absent-record-student': (context) {
       final classId = ModalRoute.of(context)!.settings.arguments as String;

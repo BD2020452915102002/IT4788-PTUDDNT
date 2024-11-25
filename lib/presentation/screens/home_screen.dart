@@ -171,7 +171,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     try {
       final res = await ApiClass().post('/register_class', {
         "token": Token().get(),
-        //"role": HiveService().getData('userData')['role'],
+        "role": HiveService().getData('userData')['role'],
         "class_ids": classIds
       });
       if (res.statusCode == 200) {
@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
 
                 if (classIds.isNotEmpty) {
                   _registerClassAPI(
-                      classIds);
+                      classIds); // Gọi API khi mảng classIds không rỗng
                 }
                 Navigator.of(context).pop(); // Đóng cửa sổ
               },
@@ -292,24 +292,24 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     setState(() {
       page = 0;
     });
-   await fetchClassList();
+    await fetchClassList();
     setState(() {
       _classList = HiveService().getData('page_content');
     });
   }
   Future<void> onLoad ()async{
-   final pageInfor =   HiveService().getData('page_info');
-   if(pageInfor['next_page'] == null){
-     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã hết lớp học')));
-   } else {
-     setState(() {
-       page ++ ;
-     });
-   await loadMoreClassList();
-     setState(() {
-       _classList = HiveService().getData('page_content');
-     });
-   }
+    final pageInfor =   HiveService().getData('page_info');
+    if(pageInfor['next_page'] == null){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã hết lớp học')));
+    } else {
+      setState(() {
+        page ++ ;
+      });
+      await loadMoreClassList();
+      setState(() {
+        _classList = HiveService().getData('page_content');
+      });
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -343,101 +343,101 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage.isNotEmpty
-              ? Center(child: Text(_errorMessage))
-              : _classList.isEmpty
-                  ? Center(child: Text('Bạn chưa có lớp nào'))
-                  : EasyRefresh(
-                      onRefresh: onRefresh,
-                      onLoad: onLoad,
-                      child: ListView.builder(
-                        itemCount: _classList.length,
-                        itemBuilder: (context, index) {
-                          final classData =
-                          _classList[index] as Map<dynamic, dynamic>;
-                          return GestureDetector(
-                              onTap: () {
-                                Navigator.of(context, rootNavigator: true)
-                                    .pushNamed('/class-detail-student',
-                                    arguments: classData);
-                              },
-                              child: Card(
-                                elevation: 4,
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange[50],
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            classData['class_name'],
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              color: AppColors.primary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: double.infinity,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(12),
-                                          bottomRight: Radius.circular(12),
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Loại lớp: ${classData['class_type']}',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Giảng viên: ${classData['lecturer_name']}',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ));
-                        },
+          ? Center(child: Text(_errorMessage))
+          : _classList.isEmpty
+          ? Center(child: Text('Bạn chưa có lớp nào'))
+          : EasyRefresh(
+        onRefresh: onRefresh,
+        onLoad: onLoad,
+        child: ListView.builder(
+          itemCount: _classList.length,
+          itemBuilder: (context, index) {
+            final classData =
+            _classList[index] as Map<dynamic, dynamic>;
+            return GestureDetector(
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true)
+                      .pushNamed('/class-detail-student',
+                      arguments: classData);
+                },
+                child: Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              classData['class_name'],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                      Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              'Loại lớp: ${classData['class_type']}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Giảng viên: ${classData['lecturer_name']}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ));
+          },
+        ),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: const EdgeInsets.all(0),
@@ -490,7 +490,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 Navigator.of(context, rootNavigator: true).pushNamed(
                     "/information",
                     arguments:
-                        HiveService().getData('userData')['id'].toString());
+                    HiveService().getData('userData')['id'].toString());
               },
             ),
             ListTile(
@@ -502,7 +502,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 Navigator.of(context, rootNavigator: true)
                     .pushNamedAndRemoveUntil(
                   "/login",
-                  (Route<dynamic> route) => false,
+                      (Route<dynamic> route) => false,
                 );
               },
             ),

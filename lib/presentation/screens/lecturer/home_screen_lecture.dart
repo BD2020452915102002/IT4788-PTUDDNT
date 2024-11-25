@@ -368,7 +368,7 @@ class _HomeScreenState extends State<HomeScreenLec> {
               title: const Text('Thông tin cá nhân'),
               onTap: () {
                 Navigator.of(context, rootNavigator: true).pushNamed(
-                    "/information-student",
+                    "/information",
                     arguments: HiveService().getData('userData')['id'].toString()
                 );
               },
