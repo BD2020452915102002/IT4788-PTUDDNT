@@ -3,7 +3,7 @@ import 'package:ptuddnt/core/utils/hive.dart';
 import 'dart:convert';
 import '../../../core/utils/token.dart';
 import '../../../core/config/api_class.dart';
-import '../../../core/constants/colors.dart';  // Import AppColors class
+import '../../../core/constants/colors.dart';
 
 class AttendanceLectureScreen extends StatefulWidget {
   final String classId;
@@ -29,9 +29,12 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   bool sortAscending2 = true;
 
   late TabController _tabController;
-  final FocusNode _dateFocusNode = FocusNode();
 
   bool isLoading = false;
+  bool isLoading2 = false;
+
+  List<String> _dateList = ['2024-11-25', '2024-11-26', '2024-11-27', '2024-11-25', '2024-11-26', '2024-11-27']; // Example date list
+  String? _selectedDate; // To hold the selected value
 
   Future<void> getToken() async {
     _token = (await Token().get())!;
@@ -53,15 +56,17 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     getToken().then((_) {
       setState(() {
         _date = formatDate(DateTime.now());
-        _dateController.text = _date;
         _dateNow = _date;
+        _dateList = List<String>.from(Set<String>.from(_dateList));
         fetchStudents();
+        fetchAttendanceDate();
       });
     });
   }
 
   Future<void> fetchStudents() async {
     setState(() {
+      students = [];
       isLoading = true;
     });
     final response = await ApiClass().post('/get_class_info', {
@@ -75,8 +80,9 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
       setState(() {
         isLoading = false;
+        var responseBody = utf8.decode(response.bodyBytes); // Decode the body as UTF-8
         students = List<Map<String, dynamic>>.from(
-          json.decode(response.body)["data"]["student_accounts"],
+          json.decode(responseBody)["data"]["student_accounts"],
         );
       });
     } else {
@@ -87,11 +93,42 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     }
   }
 
+  Future<void> fetchAttendanceDate() async {
+    setState((){
+      isLoading2 = true;
+      _dateList = [];
+    });
+
+    final response = await ApiClass().post('/get_attendance_dates', {
+      'token': _token,
+      'class_id': _classId
+    });
+
+    if(response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+      if(responseData['data'] != null) {
+        setState(() {
+          _dateList = List<String>.from(responseData["data"]);
+        });
+      }
+      setState(() {
+        isLoading2 = false;
+      });
+    } else {
+      setState(() {
+        isLoading2 = false;
+      });
+      showError(response);
+    }
+
+
+  }
+
   Future<void> fetchAttendanceData() async {
     setState(() {
-      isLoading = true; // Show loading indicator
+      isLoading2 = true; // Show loading indicator
       attendanceDetails.clear();
-      _date = _dateController.text;
       print("date:" + _date);
     });
 
@@ -99,6 +136,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
       'token': _token,
       'class_id': _classId,
       'date': _date.toString(),
+
     });
 
     if (response.statusCode == 200) {
@@ -111,25 +149,24 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
           for (var attendance in attendanceDetails) {
             var student = students.firstWhere(
                   (student) => student['student_id'] == attendance['student_id'],
-              orElse: () => {}, // Empty map if no match is found
+              orElse: () => {},
             );
             if (student.isNotEmpty) {
-              // Add first_name and last_name from students to each attendance entry
               attendance['first_name'] = student['first_name'];
               attendance['last_name'] = student['last_name'];
             }
           }
 
-          isLoading = false; // Hide loading indicator
+          isLoading2 = false;
         });
       } else {
         setState(() {
-          isLoading = false; // Hide loading indicator
+          isLoading2 = false;
         });
       }
     } else {
       setState(() {
-        isLoading = false; // Hide loading indicator
+        isLoading2 = false;
       });
       showError(response);
     }
@@ -137,7 +174,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
   Future<void> changeAbsenceStatus(attendanceId, status) async {
     setState(() {
-      isLoading = true;
+      isLoading2 = true;
     });
     final response = await ApiClass().post('/set_attendance_status', {
       "token": _token,
@@ -147,7 +184,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
     if (response.statusCode == 200) {
       setState(() {
-        isLoading = false;
+        isLoading2 = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Change Status Successfully')),
@@ -155,7 +192,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
     } else {
       setState(() {
-        isLoading = false;
+        isLoading2 = false;
       });
       showError(response);
 
@@ -203,24 +240,11 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     );
   }
 
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (pickedDate != null) {
-      setState(() {
-        _dateController.text = pickedDate.toLocal().toString().split(' ')[0];
-      });
-      print(_dateController.text);
-      // Format as YYYY-MM-DD
-    }
-  }
-
   // Submit Absences
   Future<void> submitAbsences() async {
+    setState((){
+      isLoading = true;
+    });
     final response = await ApiClass().post('/take_attendance', {
       "token": _token,
       "class_id": _classId,
@@ -232,8 +256,17 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Attendance Submitted Successfully')),
       );
-      absenceList.clear();
+
+      setState((){
+        isLoading = false;
+        absenceList.clear();
+      });
+
+      fetchAttendanceDate();
     } else {
+      setState((){
+        isLoading = false;
+      });
       showError(response);
     }
   }
@@ -309,7 +342,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     double indexColumnWidth = screenWidth * 0.1;
     double idColumnWidth = screenWidth * 0.2;   // 20% of screen width
     double nameColumnWidth = screenWidth * 0.5; // 50% of screen width
-    double absenceColumnWidth = screenWidth * 0.2; // 30% of screen width
+    double absenceColumnWidth = screenWidth * 0.2; // 20% of screen width
     return Scaffold(
       appBar: AppBar(
         title: const Text('ĐIỂM DANH'),
@@ -491,6 +524,8 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                                         child: Checkbox(
                                           value: absenceList.contains(student['student_id']),
                                           onChanged: (value) => _onCheckboxChanged(value, student['student_id']),
+                                          checkColor: Colors.white, // Color of the checkmark
+                                          activeColor: AppColors.primary50, // Color when checked
                                         ),
                                       ),
                                     ),
@@ -535,19 +570,27 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                         ]
                     ),
                     SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        showLoadingDialog(context);
-                        await submitAbsences();
-                        Navigator.of(context).pop();
-
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.buttonColor,  // Button background color
-                        foregroundColor: Colors.white,  // Text color for the button
-                      ), // Custom button color
-                      child: Text('Gửi'),
-                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,  // Align the button to the right
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            showLoadingDialog(context);
+                            await submitAbsences();
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.buttonColor,  // Button background color
+                            foregroundColor: Colors.white,  // Text color for the button
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),  // Set the border radius here
+                            ),
+                          ),
+                          child: Text('Gửi'),
+                        ),
+                        SizedBox(width: 8.0),
+                      ],
+                    )
                   ],
                 ),
 
@@ -560,36 +603,87 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                       child: Row(
                         children: [
                           Expanded(
-                            child: GestureDetector(
-                              onTap: () async {
-                                _dateFocusNode.unfocus(); // Close the keyboard if open
-                                await _pickDate(context); // Show date picker
-                              },
-                              behavior: HitTestBehavior.translucent, // Ensures taps are properly registered
-                              child: AbsorbPointer( // Prevent default TextField tap behavior
-                                child: TextField(
-                                  readOnly: true,
-                                  decoration: InputDecoration(
-                                    labelText: 'Nhập ngày',
-                                    hintText: 'YYYY-MM-DD',
-                                    hintStyle: TextStyle(color: AppColors.textColorBlur),
-                                    border: OutlineInputBorder(),
-                                    suffixIcon: Icon(Icons.calendar_today),
-                                    fillColor: AppColors.tertiary,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Padding for button-like appearance
+                              decoration: BoxDecoration(
+                                color: Colors.white, // Set the background color to white
+                                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                                border: Border.all(color: AppColors.primary50), // Border color
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26, // Shadow color
+                                    blurRadius: 4.0, // Blur radius
+                                    offset: Offset(0, 2), // Shadow position
                                   ),
-                                  controller: _dateController,
-                                  focusNode: _dateFocusNode,
+                                ], // Adding shadow
+                              ),
+                              height: 50, // Fixed height for the dropdown button
+                              child: Center( // Center the dropdown text inside the button
+                                child: DropdownButtonHideUnderline( // Hide the default underline of Dropdown
+                                  child: DropdownButton<String>(
+                                    hint: Text(
+                                      'Select Date',
+                                      style: TextStyle(
+                                        color: AppColors.textColorBlur,
+                                        fontWeight: FontWeight.bold, // Make hint text bold
+                                      ),
+                                    ),
+                                    value: _selectedDate, // This is the selected date from the list
+                                    onChanged: (String? newValue) {
+                                      if (newValue != _selectedDate) {
+                                        setState(() {
+                                          _selectedDate = newValue;
+                                          _date = (_selectedDate).toString();
+                                          fetchAttendanceData();
+                                        });
+                                      }
+                                    },
+                                    items: _dateList.map<DropdownMenuItem<String>>((String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Center( // Center the text inside each item
+                                          child: Text(
+                                            value,
+                                            style: TextStyle(
+                                              color: AppColors.textColor,
+                                              fontWeight: FontWeight.bold, // Make the dropdown items bold
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    icon: Icon(
+                                      Icons.calendar_today,
+                                      color: AppColors.primary50, // Icon color
+                                    ),
+                                    style: TextStyle(
+                                      color: AppColors.textColor,
+                                      fontWeight: FontWeight.bold, // Make the selected text bold
+                                    ),
+                                    isExpanded: true, // Expand to fill available space
+                                    isDense: true, // Reduce vertical space
+                                    menuMaxHeight: 200, // Set max height for dropdown items
+                                    dropdownColor: Colors.white, // Set dropdown background color
+                                    selectedItemBuilder: (BuildContext context) {
+                                      return _dateList.map<Widget>((String value) {
+                                        return Center( // Center the selected text inside the dropdown button
+                                          child: Text(
+                                            value,
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                              color: AppColors.textColor,
+                                              fontWeight: FontWeight.bold, // Make the selected text bold
+                                            ),
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.search, color: AppColors.primary50),
-                            onPressed: () async {
-                              _dateFocusNode.unfocus();
-                              fetchAttendanceData();
-                            },
-                          ),
+
 
                         ],
                       ),
@@ -706,7 +800,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                             ],
                           ),
 
-                          isLoading
+                          isLoading2
                               ? Center(child: CircularProgressIndicator())
                               : SizedBox(
                             height: 350,
@@ -718,7 +812,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                                   2: FixedColumnWidth(nameColumnWidth),  // Name column width = 200
                                   3: FixedColumnWidth(absenceColumnWidth),  // Absence column width = 100
                                 },
-                                border: TableBorder.all(color: AppColors.textColor),
+                                border: TableBorder.all(color: Colors.grey),
                                 children: attendanceDetails.asMap().entries.map((entry) {
                                   final index = entry.key;   // This gives you the index of the student
                                   final attendance = entry.value; // This gives you the student data
@@ -741,35 +835,55 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                                       SizedBox(
                                         height: 50,  // Row height
                                         child: Center(
-                                          child: DropdownButton<String>(
-                                            value: attendance['status'],
-                                            onChanged: (newValue) {
-                                              setState(() {
-                                                attendance['status'] = newValue;
-                                                changeAbsenceStatus(attendance['attendance_id'], newValue);
-                                              });
-                                            },
-                                            items: const [
-                                              DropdownMenuItem(value: 'EXCUSED_ABSENCE', child: Text('Có Phép',
-                                                                                                      textAlign: TextAlign.center,
-                                                                                                      style: TextStyle(
-                                                                                                        fontSize: 12.0,
-                                                                                                        color: Colors.yellow
-                                                                                                      ))),
-                                              DropdownMenuItem(value: 'UNEXCUSED_ABSENCE', child: Text('Không phép',
-                                                                                                      textAlign: TextAlign.center,
-                                                                                                      style: TextStyle(
-                                                                                                        fontSize: 12.0,
-                                                                                                        color: AppColors.primary50
-                                                                                                      ))),
-                                              DropdownMenuItem(value: 'PRESENT', child: Text('Có mặt',
-                                                                                                      textAlign: TextAlign.center,
-                                                                                                      style: TextStyle(
-                                                                                                        fontSize: 12.0,
-                                                                                                        color: Colors.green
-                                                                                                      ))),
-                                            ],
-                                          ),
+                                          child: DropdownButtonHideUnderline(
+                                            child: DropdownButton<String>(
+                                              value: attendance['status'],
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  attendance['status'] = newValue;
+                                                  changeAbsenceStatus(attendance['attendance_id'], newValue);
+                                                });
+                                              },
+                                              items: const [
+                                                DropdownMenuItem(
+                                                  value: 'EXCUSED_ABSENCE',
+                                                  child: Text(
+                                                    'Có Phép',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      fontSize: 12.0,
+                                                      color: Colors.yellow,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                                DropdownMenuItem(
+                                                  value: 'UNEXCUSED_ABSENCE',
+                                                  child: Text(
+                                                    'Không phép',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      fontSize: 12.0,
+                                                      color: AppColors.primary50,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                                DropdownMenuItem(
+                                                  value: 'PRESENT',
+                                                  child: Text(
+                                                    'Có mặt',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      fontSize: 12.0,
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )
                                         ),
                                       ),
                                     ],
