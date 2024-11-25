@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:ptuddnt/core/config/api_class.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
@@ -22,20 +23,42 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
   String? textResponse;
   File? selectedFile;
   bool loading = false;
+
   // late final Map<dynamic, dynamic> submitData;
   late String stateAssignment;
+  bool loadingSubmit = false;
+  Map<dynamic, dynamic> submitData = {};
 
   @override
   void initState() {
     super.initState();
+    init();
+  }
+
+  Future<void> init() async {
     final now = DateTime.now();
     final status = DateTime.parse(widget.assignment['deadline']).isBefore(now);
     if (widget.assignment['is_submitted']) {
-      stateAssignment = 'hoanthanh';
+      setState(() {
+        stateAssignment = 'hoanthanh';
+      });
     } else {
-      stateAssignment = status ? 'hethan' : 'chuahoanthanh';
+      setState(() {
+        stateAssignment = status ? 'hethan' : 'chuahoanthanh';
+      });
+    }
+
+    if (stateAssignment == 'hoanthanh') {
+      final cachedData = HiveService().getData('submitData${widget.assignment['id']}');
+      if (cachedData == null) {
+        await fetchSubmit();
+      }
+      setState(() {
+        submitData = HiveService().getData('submitData${widget.assignment['id']}') ?? {};
+      });
     }
   }
+
 
   String formatDeadline(String deadline) {
     final deadlineDate = DateTime.parse(deadline);
@@ -48,10 +71,8 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
         final res = await ApiClass().post('/get_submission',
             {"token": Token().get(), "assignment_id": widget.assignment['id']});
         if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          setState(() {
-            // submitData = data['data'] as Map<dynamic, dynamic>;
-          });
+          final data = jsonDecode(utf8.decode(res.bodyBytes));
+          await HiveService().saveData('submitData${widget.assignment['id']}', data['data']);
         }
       } catch (err) {}
     }
@@ -67,18 +88,40 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      setState(() {
-        selectedFile = File(result.files.single.path!);
-      });
-    }
+   if(stateAssignment != 'hoanthanh'){
+     final result = await FilePicker.platform.pickFiles();
+     if (result != null) {
+       setState(() {
+         selectedFile = File(result.files.single.path!);
+       });
+     }
+   }
   }
 
   Future<void> _submitAssignment() async {
-    setState(() {
-      loading = true;
-    });
+    // Hiển thị popup nộp bài
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.red,
+                  strokeWidth: 2,
+                ),
+              ),
+              SizedBox(width: 10),
+              Text("Đang nộp bài..."),
+            ],
+          ),
+        );
+      },
+    );
 
     if (selectedFile != null && textResponse != null) {
       final token = Token().get();
@@ -100,26 +143,88 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
 
       try {
         var response = await request.send();
+        Navigator.pop(context); // Đóng popup nộp bài
         if (response.statusCode == 200) {
-          // Xử lý phản hồi thành công
-          print('Bài tập đã nộp thành công!');
+          // Hiển thị popup nộp bài thành công
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Thành công"),
+                content: Text("Bài tập đã được nộp thành công!"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context, "a");
+                      // Đóng popup
+                    },
+                    child: Text("Đóng"),
+                  ),
+                ],
+              );
+            },
+          );
         } else {
-          // Xử lý phản hồi lỗi
-          print('Lỗi khi nộp bài tập: ${response.statusCode}');
+          // Xử lý lỗi và thông báo
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Lỗi"),
+                content: Text("Lỗi khi nộp bài tập: ${response.statusCode}"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Đóng"),
+                  ),
+                ],
+              );
+            },
+          );
         }
       } catch (e) {
-        // Xử lý lỗi kết nối
-        print('Lỗi kết nối: $e');
-      } finally {
-        setState(() {
-          loading = false;
-        });
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Lỗi kết nối"),
+              content: Text("Không thể kết nối tới máy chủ: $e"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Đóng popup
+                  },
+                  child: Text("Đóng"),
+                ),
+              ],
+            );
+          },
+        );
       }
     } else {
-      setState(() {
-        loading = false;
-      });
-      print('Vui lòng chọn file và nhập mô tả!');
+      Navigator.pop(context); // Đóng popup nộp bài
+      // Hiển thị thông báo lỗi
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Lỗi"),
+            content: Text("Vui lòng chọn file và nhập mô tả!"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Đóng popup
+                },
+                child: Text("Đóng"),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -158,20 +263,29 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                       fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
+
               Center(
                 child: Text(
-                  'Hạn: ${formatDeadline(widget.assignment['deadline'])}',
-                  style: const TextStyle(color: Colors.grey),
+                  submitData.isNotEmpty && submitData['submission_time'] != null
+                      ? 'Nộp bài lúc: ${formatDeadline(submitData['submission_time'])}'
+                      : 'Hạn: ${formatDeadline(widget.assignment['deadline'])}',
+                  style: TextStyle(
+                    color: stateAssignment == 'hoanthanh' ? Colors.green : Colors.grey,
+                  ),
                 ),
               ),
-             // if(submitData['submission_time'] != null)
-             //   Center(
-             //   child: Text(
-             //     'Đã nộp: ${formatDeadline(submitData['submission_time'])}',
-             //     style: const TextStyle(color: Colors.greenAccent),
-             //   ),
-             // ),
+
+              if (submitData['grade'] != null)
+                Center(
+                  child: Text(
+                    "Điểm: ${submitData['grade']}",
+                    style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
               const SizedBox(height: 16),
               const Text(
                 'Mô tả:',
@@ -226,7 +340,13 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                TextField(
+                submitData.isNotEmpty && submitData['text_response'] != null ?
+                Container(
+                  color: Colors.grey[50],
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(submitData['text_response']),
+                ):TextField(
                   onChanged: (value) {
                     setState(() {
                       textResponse = value;
@@ -257,25 +377,24 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                     ElevatedButton(
                       style: ButtonStyle(
                         minimumSize:
-                            MaterialStateProperty.all<Size>(Size(40, 50)),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                            WidgetStateProperty.all<Size>(Size(40, 50)),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                         backgroundColor:
-                            MaterialStateProperty.all<Color>(AppColors.primary),
+                            WidgetStateProperty.all<Color>(AppColors.primary),
                       ),
-                      onPressed: _pickFile,
+                      onPressed:   _pickFile,
                       child: const Icon(Icons.attach_file, color: Colors.white),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        selectedFile != null
-                            ? selectedFile!.path.split('/').last
-                            : 'Chưa chọn file',
+                         submitData.isNotEmpty && submitData['file_url'] != null ? submitData['file_url'] :  selectedFile != null
+                             ? selectedFile!.path.split('/').last
+                             : 'Chưa chọn file',
                         style: TextStyle(
                           color: Colors.grey,
                         ),
@@ -284,24 +403,24 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _submitAssignment,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Nộp bài',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
+               if(stateAssignment != 'hoanthanh')  Center(
+                 child: ElevatedButton(
+                   onPressed: _submitAssignment,
+                   style: ElevatedButton.styleFrom(
+                     backgroundColor: AppColors.primary,
+                     padding: const EdgeInsets.symmetric(
+                         vertical: 16, horizontal: 52),
+                     shape: RoundedRectangleBorder(
+                       borderRadius: BorderRadius.circular(8),
+                     ),
+                   ),
+                   child: const Text(
+                     'Nộp bài',
+                     style:
+                     TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                   ),
+                 ),
+               ),
               ],
             ],
           ),

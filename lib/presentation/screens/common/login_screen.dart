@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
-import '../../core/config/api_authen.dart';
-import '../../core/constants/colors.dart';
+import '../../../core/config/api_authen.dart';
+import '../../../core/constants/colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       final userData = data['data'];
 
       String? role = userData['role'];
@@ -52,11 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print('userData day nha :3 >>>  $userData');
 
       if (!mounted) return;
-      if (role == 'STUDENT') {
-        Navigator.pushReplacementNamed(context, '/home-student');
-      } else if (role == 'LECTURER') {
-        Navigator.pushReplacementNamed(context, '/home-lecturer');
-      }
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
       final res = jsonDecode(response.body);
       String message = res['message'];
@@ -193,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   const SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         onPressed: () {
@@ -201,12 +197,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: const Text('Đăng ký'),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/forgot_password');
-                        },
-                        child: const Text('Quên mật khẩu?'),
-                      ),
+                      // TextButton(
+                      //   onPressed: () {
+                      //     Navigator.pushNamed(context, '/forgot_password');
+                      //   },
+                      //   child: const Text('Quên mật khẩu?'),
+                      // ),
                     ],
                   ),
                 ],

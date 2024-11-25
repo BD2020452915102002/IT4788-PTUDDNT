@@ -2,18 +2,19 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
+import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
-class StudentInfoScreen extends StatefulWidget {
+class InfoScreen extends StatefulWidget {
   final String userId;
-  const StudentInfoScreen({super.key, required this.userId});
+  const InfoScreen({super.key, required this.userId});
   @override
-  StudentInfoScreenState createState() => StudentInfoScreenState();
+  InfoScreenState createState() => InfoScreenState();
 }
 
-class StudentInfoScreenState extends State<StudentInfoScreen> {
+class InfoScreenState extends State<InfoScreen> {
   Map<String, dynamic> userData = {};
   late String token = '';
   late String hoTen = '';
@@ -41,7 +42,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        userData = jsonDecode(response.body)['data'];
+        userData = jsonDecode(utf8.decode(response.bodyBytes))['data'];
         hoTen = '${userData['ho']} ${userData['ten']}';
       });
     } else {
@@ -138,6 +139,8 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final role = HiveService().getData('userData')['role'] as String;
+    final textRole = role == 'STUDENT'?'sinh viên':'giảng viên';
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -146,8 +149,8 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
-          "Thông tin sinh viên",
+        title:  Text(
+          "Thông tin $textRole",
           style: TextStyle(
             color: AppColors.tertiary,
             fontStyle: FontStyle.normal,
@@ -253,7 +256,7 @@ class StudentInfoScreenState extends State<StudentInfoScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Id sinh viên: ${userData['id'] ?? 'Không có'}',
+                        'Id $textRole: ${userData['id'] ?? 'Không có'}',
                         style: const TextStyle(fontSize: 18),
                       ),
                       const SizedBox(height: 10),

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
-import '../../core/config/api_authen.dart';
-import '../../core/utils/notification.dart';
+import '../../../core/config/api_authen.dart';
+import '../../../core/utils/notification.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

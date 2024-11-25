@@ -173,145 +173,140 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
         ),
         centerTitle: true,
         backgroundColor: AppColors.primary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history, color: AppColors.tertiary),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/history_absence_request',
+                arguments: widget.classId,
+              );
+            },
+          ),
+        ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 8),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Tiêu đề",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                hintText: "Nhập tiêu đề",
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: BorderSide(
+                    color: AppColors.primary,
+                    width: 2.0,
+                  ),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Lý do",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildTextField(
+              _reasonController,
+              maxLines: 4,
+              hintText: "Nhập lý do",
+              hintStyle: TextStyle(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(100, 50),
+                maximumSize: const Size(160, 50),
+                backgroundColor: AppColors.primary,
+              ),
+              onPressed: _pickFile,
+              child: Row(
                 children: [
-                  const SizedBox(height: 8),
-                  const Align(
-                    alignment: Alignment.centerLeft,
+                  const Icon(
+                    Icons.attach_file,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
                     child: Text(
-                      "Title",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      _selectedFile == null
+                          ? "Nộp minh chứng"
+                          : "File đã chọn: ${path.basename(_selectedFile!.path)}",
+                      style: const TextStyle(color: Colors.white, fontStyle: FontStyle.italic),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _titleController,
-                    onChanged: (value) {
-                    },
-                    decoration: InputDecoration(
-                      hintText: "Nhập tiêu đề",
-                      hintStyle: TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        borderSide: BorderSide(
-                          color: AppColors.primary,
-                          width: 2.0,
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Lý do",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    _reasonController,
-                    maxLines: 4,
-                    hintText: "Nhập lý do",
-                    hintStyle: TextStyle(
-                      fontSize: 16,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-
-
-                  const SizedBox(height: 16),
-
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(100, 50),
-                      maximumSize: const Size(160, 50),
-                      backgroundColor: AppColors.primary,
-                    ),
-                    onPressed: _pickFile,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.attach_file,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            _selectedFile == null
-                                ? "Nộp minh chứng"
-                                : "File đã chọn: ${path.basename(_selectedFile!.path)}",
-                            style: const TextStyle(color: Colors.white, fontStyle: FontStyle.italic),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Ngày xin nghỉ",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: AbsorbPointer(
-                      child: _buildTextField(_dateController),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 120),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(120, 50),
+            const SizedBox(height: 20),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Ngày xin nghỉ",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                onPressed: _isSubmitting ? null : _submitAbsenceRequest,
-                child: _isSubmitting
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : const Text("Xác nhận", style: TextStyle(fontSize: 18)),
               ),
             ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickDate,
+              child: AbsorbPointer(
+                child: _buildTextField(_dateController),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            maximumSize: const Size(120,50),
           ),
-        ],
+          onPressed: _isSubmitting ? null : _submitAbsenceRequest,
+          child: _isSubmitting
+              ? CircularProgressIndicator(color: Colors.white)
+              : const Text("Xác nhận", style: TextStyle(fontSize: 18)),
+        ),
       ),
     );
   }
