@@ -4,7 +4,7 @@ import 'package:ptuddnt/core/config/api_class.dart';
 import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
-import 'package:ptuddnt/presentation/screens/lecturer/home_screen_layout_lec.dart';
+import 'package:ptuddnt/presentation/screens/common/home_screen.dart';
 
 class ClassInfo extends StatefulWidget {
   final String classId;
@@ -444,7 +444,7 @@ class _ClassInfoState extends State<ClassInfo> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeLectuter()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       }
     } catch (e) {

@@ -42,7 +42,7 @@ class InfoScreenState extends State<InfoScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        userData = jsonDecode(response.body)['data'];
+        userData = jsonDecode(utf8.decode(response.bodyBytes))['data'];
         hoTen = '${userData['ho']} ${userData['ten']}';
       });
     } else {
