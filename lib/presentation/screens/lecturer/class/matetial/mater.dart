@@ -66,7 +66,7 @@ class _MaterialScreenState extends State<MaterialScreen>{
       print('Class ID: ${widget.classId}');
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (jsonResponse != null && jsonResponse['data'] != null) {
           await HiveService().saveData('tailieu', jsonResponse['data']);
         }
@@ -108,7 +108,7 @@ class _MaterialScreenState extends State<MaterialScreen>{
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
         final data = jsonResponse['data'];
         print('Decoded data: $data');
         return MaterialClass.fromJson(data);
