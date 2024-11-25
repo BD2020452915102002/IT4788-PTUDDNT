@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import '../../../../core/config/api_class.dart';
 import '../../../../core/constants/colors.dart';
@@ -77,7 +78,7 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
 
         if (response.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration successful!')),
+            SnackBar(content: Text('Tạo lớp thành công!', style: TextStyle(color: Colors.green))),
           );
           _clearFields();
         } else {
@@ -105,11 +106,11 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
     final data = json.decode(response.body);
     final errorMessage = data['meta']['message'];
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(errorMessage)));
+        .showSnackBar(SnackBar(content: Text(errorMessage, style: TextStyle(color: Colors.red))));
 
-    if (data['meta']['code'] == 9998) {
+    if (data['meta']['code'] == "9998") {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMessage)));
+          .showSnackBar(SnackBar(content: Text("phiên đăng nhập hết hạn", style: TextStyle(color: Colors.red))));
       await _logout();
     }
 
@@ -160,6 +161,10 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
                   labelText: "ID lớp học",
                   border: OutlineInputBorder(),
                 ),
+                keyboardType: TextInputType.number, // Show numeric keyboard
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly, // Allow only digits
+                ],
                 validator: (value) =>
                 value!.isEmpty ? 'ID lớp học không thể để trống' : null,
               ),
@@ -169,6 +174,7 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
                 decoration: InputDecoration(
                   labelText: "Tên lớp học",
                   border: OutlineInputBorder(),
+
                 ),
                 validator: (value) =>
                 value!.isEmpty ? 'Tên lóp học không thể để trống' : null,

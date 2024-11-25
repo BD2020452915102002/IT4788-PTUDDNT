@@ -29,11 +29,11 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
       final data = json.decode(response.body);
       final errorMessage = data['meta']['message'];
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMessage)));
+          .showSnackBar(SnackBar(content: Text(errorMessage, style: TextStyle(color: Colors.red))));
 
-      if (data['meta']['code'] == 9998) {
+      if (data['meta']['code'] == "9998") {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(errorMessage)));
+            .showSnackBar(SnackBar(content: Text("phiên đăng nhập hết hạn", style: TextStyle(color: Colors.red))));
         await _logout();
       }
 
