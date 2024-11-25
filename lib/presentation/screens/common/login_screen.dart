@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
+import 'package:ptuddnt/core/utils/notification.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 import '../../../core/config/api_authen.dart';
 import '../../../core/constants/colors.dart';
@@ -44,7 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       final userData = data['data'];
 
-      String? role = userData['role'];
       String? token = userData['token'];
       await HiveService().saveData('userData', userData);
       await Token().save(token!);
@@ -56,9 +56,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       final res = jsonDecode(response.body);
       String message = res['message'];
-      setState(() {
-        _errorMessage = message;
-      });
+      NotificationService().showAlertDialog(context, "Oh no!", message);
+      // setState(() {
+      //   _errorMessage = message;
+      // });
     }
   }
 
@@ -148,6 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                       return null;
                     },
+                    autovalidateMode: AutovalidateMode.onUserInteraction
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
@@ -169,6 +171,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                       return null;
                     },
+                      autovalidateMode: AutovalidateMode.onUserInteraction
+
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
