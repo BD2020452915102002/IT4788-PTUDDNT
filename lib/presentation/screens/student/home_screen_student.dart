@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
 
                 if (classIds.isNotEmpty) {
                   _registerClassAPI(
-                      classIds); // Gọi API khi mảng classIds không rỗng
+                      classIds);
                 }
                 Navigator.of(context).pop(); // Đóng cửa sổ
               },

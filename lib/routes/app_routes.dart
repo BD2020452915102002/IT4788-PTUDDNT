@@ -64,6 +64,10 @@ class AppRoutes {
       final classId = ModalRoute.of(context)!.settings.arguments as String;
       return ReviewRequestScreen(classId: classId);
     },
+    '/history_absence_request': (context) {
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return ReviewRequestScreen(classId: classId);
+    },
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
     '/attendance-screen-lecturer': (context) {
       final classId = ModalRoute.of(context)!.settings.arguments as String;

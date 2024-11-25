@@ -7,7 +7,6 @@ import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
-
 class LeaveRequestScreen extends StatefulWidget {
   final String classId;
 
@@ -27,16 +26,12 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
   DateTime? _selectedDate;
   bool _isSubmitting = false;
 
-  late final String token ;
+  late final String token;
 
   @override
   void initState() {
     super.initState();
     token = Token().get();
-  }
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
   }
 
   @override
@@ -173,6 +168,18 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
         ),
         centerTitle: true,
         backgroundColor: AppColors.primary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.tertiary),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                'history_absence_request',
+                arguments: widget.classId,
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -196,8 +203,6 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _titleController,
-                    onChanged: (value) {
-                    },
                     decoration: InputDecoration(
                       hintText: "Nhập tiêu đề",
                       hintStyle: TextStyle(
@@ -240,10 +245,7 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-
-
                   const SizedBox(height: 16),
-
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(100, 50),
@@ -271,7 +273,6 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 20),
                   const Align(
                     alignment: Alignment.centerLeft,
@@ -290,7 +291,6 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                       child: _buildTextField(_dateController),
                     ),
                   ),
-
                   const SizedBox(height: 20),
                 ],
               ),
@@ -304,10 +304,14 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(120, 50),
                 ),
-                onPressed: _isSubmitting ? null : _submitAbsenceRequest,
-                child: _isSubmitting
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : const Text("Xác nhận", style: TextStyle(fontSize: 18)),
+                onPressed: _submitAbsenceRequest,
+                child: const Text(
+                  "Xác nhận",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
             ),
           ),
@@ -316,29 +320,25 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    {
-      int maxLines = 1,
-      String? hintText,
-      TextStyle? hintStyle
-    }
-  ){
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: hintStyle,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          filled: true,
-          fillColor: Colors.grey[200],
+  TextField _buildTextField(TextEditingController controller, {int maxLines = 1, String hintText = '', TextStyle hintStyle = const TextStyle()}) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: hintStyle,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: AppColors.primary,
+            width: 2.0,
+          ),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
       ),
     );
   }
