@@ -55,7 +55,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     _classId = widget.classId;
     getToken().then((_) {
       setState(() {
-        _date = formatDate(DateTime.now());
+      _date = formatDate(DateTime.now());
         _dateNow = _date;
         _dateList = List<String>.from(Set<String>.from(_dateList));
         fetchStudents();
@@ -187,7 +187,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
         isLoading2 = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Change Status Successfully')),
+        SnackBar(content: Text('Thay đổi trạng thái thành công!', style: TextStyle(color: Colors.green))),
       );
 
     } else {
@@ -202,10 +202,10 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   Future<void> showError(response) async {
     final data = json.decode(response.body);
     final errorMessage = data['meta']['message'];
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage, style: TextStyle(color: AppColors.primary))));
 
-    if (data['meta']['code'] == 9998) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+    if (data['meta']['code'] == "9998") {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("phiên đăng nhập hết hạn", style: TextStyle(color: AppColors.primary))));
       _logout();
     }
   }
@@ -254,7 +254,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Attendance Submitted Successfully')),
+        SnackBar(content: Text('Điểm danh thành công', style: TextStyle(color: Colors.green))),
       );
 
       setState((){
@@ -337,6 +337,16 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+
+    double screenHeight = MediaQuery.of(context).size.height;
+    double appBarHeight = AppBar().preferredSize.height;
+
+    double remainHeight = screenHeight - appBarHeight;
+
+    double table1Height = remainHeight * 0.6;
+
+    double table2Height = remainHeight * 0.65;
+
 
     // Calculate column widths as percentages of the screen width
     double indexColumnWidth = screenWidth * 0.1;
@@ -484,7 +494,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                     ),
                     SizedBox(
 
-                      height: 300,
+                      height: table1Height,
                       width: MediaQuery.of(context).size.width,
                       child: isLoading ? Center(child: CircularProgressIndicator())
                           :
@@ -618,66 +628,79 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                                 ], // Adding shadow
                               ),
                               height: 50, // Fixed height for the dropdown button
-                              child: Center( // Center the dropdown text inside the button
-                                child: DropdownButtonHideUnderline( // Hide the default underline of Dropdown
-                                  child: DropdownButton<String>(
-                                    hint: Text(
-                                      'Select Date',
-                                      style: TextStyle(
-                                        color: AppColors.textColorBlur,
-                                        fontWeight: FontWeight.bold, // Make hint text bold
+                              child: Center(
+                                child: GestureDetector(
+                                  onTap: () {
+                                  if (_dateList.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Không có dữ liệu điểm danh"),
                                       ),
-                                    ),
-                                    value: _selectedDate, // This is the selected date from the list
-                                    onChanged: (String? newValue) {
-                                      if (newValue != _selectedDate) {
-                                        setState(() {
-                                          _selectedDate = newValue;
-                                          _date = (_selectedDate).toString();
-                                          fetchAttendanceData();
-                                        });
-                                      }
-                                    },
-                                    items: _dateList.map<DropdownMenuItem<String>>((String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Center( // Center the text inside each item
-                                          child: Text(
-                                            value,
-                                            style: TextStyle(
-                                              color: AppColors.textColor,
-                                              fontWeight: FontWeight.bold, // Make the dropdown items bold
-                                            ),
-                                          ),
+                                    );
+                                  }
+                                },// Center the dropdown text inside the button
+                                  child: DropdownButtonHideUnderline( // Hide the default underline of Dropdown
+                                    child: DropdownButton<String>(
+                                      hint: Text(
+                                        'Chọn ngày',
+                                        style: TextStyle(
+                                          color: AppColors.textColorBlur,
+                                          fontWeight: FontWeight.bold, // Make hint text bold
                                         ),
-                                      );
-                                    }).toList(),
-                                    icon: Icon(
-                                      Icons.calendar_today,
-                                      color: AppColors.primary50, // Icon color
-                                    ),
-                                    style: TextStyle(
-                                      color: AppColors.textColor,
-                                      fontWeight: FontWeight.bold, // Make the selected text bold
-                                    ),
-                                    isExpanded: true, // Expand to fill available space
-                                    isDense: true, // Reduce vertical space
-                                    menuMaxHeight: 200, // Set max height for dropdown items
-                                    dropdownColor: Colors.white, // Set dropdown background color
-                                    selectedItemBuilder: (BuildContext context) {
-                                      return _dateList.map<Widget>((String value) {
-                                        return Center( // Center the selected text inside the dropdown button
-                                          child: Text(
-                                            value,
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                              color: AppColors.textColor,
-                                              fontWeight: FontWeight.bold, // Make the selected text bold
+                                      ),
+                                      value: _selectedDate, // This is the selected date from the list
+                                      onChanged: (String? newValue) {
+                                        if (newValue != _selectedDate) {
+
+                                          setState(() {
+                                            _selectedDate = newValue;
+                                            _date = (_selectedDate).toString();
+                                            fetchAttendanceData();
+                                          });
+                                        }
+                                      },
+
+                                      items: _dateList.map<DropdownMenuItem<String>>((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Center( // Center the text inside each item
+                                            child: Text(
+                                              value,
+                                              style: TextStyle(
+                                                color: AppColors.textColor,
+                                                fontWeight: FontWeight.bold, // Make the dropdown items bold
+                                              ),
                                             ),
                                           ),
                                         );
-                                      }).toList();
-                                    },
+                                      }).toList(),
+                                      icon: Icon(
+                                        Icons.calendar_today,
+                                        color: AppColors.primary50, // Icon color
+                                      ),
+                                      style: TextStyle(
+                                        color: AppColors.textColor,
+                                        fontWeight: FontWeight.bold, // Make the selected text bold
+                                      ),
+                                      isExpanded: true, // Expand to fill available space
+                                      isDense: true, // Reduce vertical space
+                                      menuMaxHeight: 200, // Set max height for dropdown items
+                                      dropdownColor: Colors.white, // Set dropdown background color
+                                      selectedItemBuilder: (BuildContext context) {
+                                        return _dateList.map<Widget>((String value) {
+                                          return Center( // Center the selected text inside the dropdown button
+                                            child: Text(
+                                              value,
+                                              style: TextStyle(
+                                                fontSize: 16.0,
+                                                color: AppColors.textColor,
+                                                fontWeight: FontWeight.bold, // Make the selected text bold
+                                              ),
+                                            ),
+                                          );
+                                        }).toList();
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
@@ -803,7 +826,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                           isLoading2
                               ? Center(child: CircularProgressIndicator())
                               : SizedBox(
-                            height: 350,
+                            height: table2Height,
                             child: SingleChildScrollView(
                               child: Table(
                                 columnWidths: {
