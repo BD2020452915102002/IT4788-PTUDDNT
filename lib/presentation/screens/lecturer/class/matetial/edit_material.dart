@@ -120,7 +120,6 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,119 +140,122 @@ class _EditMaterialScreenState extends State<EditMaterialScreen> {
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Căn chỉnh tiêu đề sang trái
-          children: [
-            // Title Section
-            const Text(
-              'Title',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 5),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            // Căn chỉnh tiêu đề sang trái
+            children: [
+              // Title Section
+              const Text(
+                'Title',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 10),
-
-            // Description Section
-            const Text(
-              'Description',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 5),
-            TextField(
-              controller: descriptionController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Material Type Section
-            const Text(
-              'Material Type',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 5),
-            DropdownButtonFormField<String>(
-              value: ['PNG', 'PDF', 'DOC'].contains(materialTypeController.text)
-                  ? materialTypeController.text
-                  : null, // Đặt giá trị mặc định nếu không hợp lệ
-              items: ['PNG', 'PDF', 'DOC']
-                  .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  materialTypeController.text = value ?? '';
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // Buttons Section
-            Center(
-              child: Column(
-                children: [
-                  // Choose File Button
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC02135),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: selectFile,
-                    child: Text(
-                      selectedFile == null
-                          ? 'Choose File'
-                          : 'File: ${selectedFile!.path.split('/').last}',
-                    ),
+              const SizedBox(height: 5),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
                   ),
-                  const SizedBox(height: 20),
-
-                  // Save Button
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC02135),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: saveChanges,
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+
+              // Description Section
+              const Text(
+                'Description',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 5),
+              TextField(
+                controller: descriptionController,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Material Type Section
+              const Text(
+                'Material Type',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 5),
+              DropdownButtonFormField<String>(
+                value:
+                    ['PNG', 'PDF', 'DOC'].contains(materialTypeController.text)
+                        ? materialTypeController.text
+                        : null, // Đặt giá trị mặc định nếu không hợp lệ
+                items: ['PNG', 'PDF', 'DOC']
+                    .map((type) =>
+                        DropdownMenuItem(value: type, child: Text(type)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    materialTypeController.text = value ?? '';
+                  });
+                },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // Buttons Section
+              Center(
+                child: Column(
+                  children: [
+                    // Choose File Button
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC02135),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: selectFile,
+                      child: Text(
+                        selectedFile == null
+                            ? 'Choose File'
+                            : 'File: ${selectedFile!.path.split('/').last}',
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Save Button
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC02135),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: saveChanges,
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-
-
 }

@@ -147,8 +147,8 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
       body: RefreshIndicator(
         onRefresh: _refreshRequests,
         child: _isLoading ?
-          Center(child:CircularProgressIndicator())
-          : Column(
+        Center(child:CircularProgressIndicator())
+            : Column(
           children: [
             Expanded(
               child: ListView.builder(
@@ -212,147 +212,149 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
 
   void _showRequestDetails(Map<String, dynamic> request) {
     String? imageUrl;
+    bool isImageLoading = false;
 
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
+          insetPadding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: StatefulBuilder(
+            builder: (context, setState) {
               return ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.9,
-                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
                 ),
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    return SingleChildScrollView(
-                      child: AlertDialog(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
-                        title: Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Center(child: Text("${request['title']}")),
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.96,
+                  padding: EdgeInsets.all(16.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            "${request['title']}",
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
                         ),
-                        content: IntrinsicHeight(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        SizedBox(height: 16),
+                        _buildInfoText('Sinh viên:', "${request['student_account']['last_name']} ${request['student_account']['first_name']}"),
+                        _buildInfoText('ID:', "${request['student_account']['student_id']}"),
+                        _buildInfoText('Ngày xin nghỉ:', "${request['absence_date']}"),
+                        _buildInfoText('Lý do:', "${request['reason']}"),
+
+                        if (request['file_url'] != null)
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                final link = convertToDirectDownloadLink(request['file_url']);
+                                setState(() {
+                                  isImageLoading = true;
+                                  imageUrl = link;
+                                });
+                              },
+                              child: Text(
+                                "View attached file",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.red,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        if (imageUrl != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10.0),
+                            child: Stack(
+                              alignment: Alignment.topRight,
                               children: [
-                                const SizedBox(height: 8),
-                                RichText(
-                                  text: TextSpan(
-                                    text: 'Sinh viên: ',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-                                    children: [
-                                      TextSpan(
-                                        text: "${request['student_account']['last_name']} ${request['student_account']['first_name']}",
-                                        style: TextStyle(fontWeight: FontWeight.normal),
-                                      ),
-                                    ],
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    imageUrl!,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) {
+                                        isImageLoading = false;
+                                        return child;
+                                      } else {
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                                : null,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    errorBuilder: (context, error, stackTrace) => Text(
+                                      'Error loading image',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                RichText(
-                                  text: TextSpan(
-                                    text: 'ID: ',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-                                    children: [
-                                      TextSpan(
-                                        text: "${request['student_account']['student_id']}",
-                                        style: TextStyle(fontWeight: FontWeight.normal),
+                                Positioned(
+                                  top: 5,
+                                  right: 5,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        imageUrl = null;
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 4,
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                RichText(
-                                  text: TextSpan(
-                                    text: 'Email: ',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-                                    children: [
-                                      TextSpan(
-                                        text: "${request['student_account']['email']}",
-                                        style: TextStyle(fontWeight: FontWeight.normal),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                RichText(
-                                  text: TextSpan(
-                                    text: 'Ngày xin nghỉ: ',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-                                    children: [
-                                      TextSpan(
-                                        text: "${request['absence_date']}",
-                                        style: TextStyle(fontWeight: FontWeight.normal),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                RichText(
-                                  text: TextSpan(
-                                    text: 'Lý do: ',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-                                    children: [
-                                      TextSpan(
-                                        text: "${request['reason']}",
-                                        style: TextStyle(fontWeight: FontWeight.normal),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (request['file_url'] != null)
-                                  Center(
-                                    child: TextButton(
-                                      onPressed: () {
-                                        final link = convertToDirectDownloadLink(request['file_url']);
-                                        setState(() {
-                                          imageUrl = link;
-                                        });
-                                      },
-                                      child: Text(
-                                        "View attached file",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.red,
-                                          fontStyle: FontStyle.italic,
-                                        ),
+                                      child: Icon(
+                                        Icons.close,
+                                        color: Colors.red,
+                                        size: 24, // Tăng kích thước icon
                                       ),
                                     ),
                                   ),
-                                if (imageUrl != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Image.network(imageUrl!),
-                                  ),
-
+                                ),
                               ],
                             ),
                           ),
+
+
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (request['status'] == 'PENDING')
+                              TextButton(
+                                onPressed: () {
+                                  _updateAbsenceRequestStatus(request['id'], "REJECTED");
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Reject", style: TextStyle(color: Colors.red)),
+                              ),
+                            if (request['status'] == 'PENDING')
+                              TextButton(
+                                onPressed: () {
+                                  _updateAbsenceRequestStatus(request['id'], "ACCEPTED");
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Accept", style: TextStyle(color: Colors.green)),
+                              ),
+                          ],
                         ),
-                        actions: [
-                          if (request['status'] == 'PENDING')
-                            TextButton(
-                              onPressed: () {
-                                _updateAbsenceRequestStatus(request['id'], "REJECTED");
-                                Navigator.of(context).pop();
-                              },
-                              child: Text("Reject", style: TextStyle(color: Colors.red)),
-                            ),
-                          if (request['status'] == 'PENDING')
-                            TextButton(
-                              onPressed: () {
-                                _updateAbsenceRequestStatus(request['id'], "ACCEPTED");
-                                Navigator.of(context).pop();
-                              },
-                              child: Text("Accept", style: TextStyle(color: Colors.green)),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
@@ -361,6 +363,23 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
       },
     );
   }
+
+  Widget _buildInfoText(String label, String value) {
+    return RichText(
+      text: TextSpan(
+        text: '$label ',
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        children: [
+          TextSpan(
+            text: value,
+            style: TextStyle(fontWeight: FontWeight.normal),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
 
   String convertToDirectDownloadLink(String driveLink) {

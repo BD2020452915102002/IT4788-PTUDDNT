@@ -300,7 +300,7 @@ class LeaveRequestScreenState extends State<LeaveRequestScreen> {
         padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            maximumSize: const Size(120,50),
+            maximumSize: const Size(120,60),
           ),
           onPressed: _isSubmitting ? null : _submitAbsenceRequest,
           child: _isSubmitting

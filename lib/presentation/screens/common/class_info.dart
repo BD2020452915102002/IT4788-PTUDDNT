@@ -51,7 +51,7 @@ class _ClassInfoState extends State<ClassInfo> {
         "class_id": widget.classId
       });
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
+        final data = jsonDecode(utf8.decode(res.bodyBytes));
         await HiveService().saveData(widget.classId, data['data']);
       }
     } catch (e) {}
@@ -73,7 +73,7 @@ class _ClassInfoState extends State<ClassInfo> {
         await fetchClassInfo();
         setState(() {
           classData = HiveService().getData(widget.classId);
-          isLoadingBtn1 = false; // Kết thúc trạng thái loading
+          isLoadingBtn1 = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Thêm sinh viên thành công')),
