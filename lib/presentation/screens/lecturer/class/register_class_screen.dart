@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
-import '../../../core/config/api_class.dart';
-import '../../../core/constants/colors.dart';
+import '../../../../core/config/api_class.dart';
+import '../../../../core/constants/colors.dart';
 import 'dart:convert';
-import '../../../core/utils/token.dart';
+import '../../../../core/utils/token.dart';
 
 class RegisterClassLecturer extends StatefulWidget {
   const RegisterClassLecturer({super.key});

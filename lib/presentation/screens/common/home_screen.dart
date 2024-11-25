@@ -6,14 +6,14 @@ import 'package:ptuddnt/core/constants/colors.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
 
-class HomeScreenStudent extends StatefulWidget {
-  const HomeScreenStudent({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<HomeScreenStudent> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreenStudent> {
+class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<dynamic> _classList = [];
   bool _isLoading = false;
@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
   String userName = '';
   String avatar = '';
   int page = 0;
-  int pageSize = 1;
+  int pageSize = 3;
 
   @override
   void initState() {
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
 
       final res = await ApiClass().post('/get_class_list', {
         "token": Token().get(),
-        "role": "STUDENT",
+        "role": HiveService().getData('userData')['role'],
         "account_id": accountId,
         "pageable_request": {"page": page, "page_size": pageSize}
       });
@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       await HiveService().deleteData('page_info');
       final res = await ApiClass().post('/get_class_list', {
         "token": Token().get(),
-        "role": "STUDENT",
+        "role":HiveService().getData('userData')['role'] ,
         "account_id": accountId,
         "pageable_request": {"page": page, "page_size": pageSize}
       });
@@ -125,7 +125,10 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         setState(() {
           _isLoading = false;
         });
-        print('Hive ${HiveService().getData('page_content')}');
+        final pageInfor =   HiveService().getData('page_info');
+        if(pageInfor['next_page'] == null){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã hết lớp học')));
+        }
       } else {
         setState(() {
           _errorMessage = 'Lỗi khi lấy danh sách lớp học.';
@@ -167,11 +170,12 @@ class _HomeScreenState extends State<HomeScreenStudent> {
       });
     }
   }
+
   Future<void> _registerClassAPI(List<String> classIds) async {
     try {
       final res = await ApiClass().post('/register_class', {
         "token": Token().get(),
-        //"role": HiveService().getData('userData')['role'],
+        "role": HiveService().getData('userData')['role'],
         "class_ids": classIds
       });
       if (res.statusCode == 200) {
@@ -266,6 +270,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     );
   }
   void _showMoreOptions() {
+    final role = HiveService().getData('userData')['role'];
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -274,13 +279,22 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           color: Colors.white,
           child: Center(
             child: Wrap(
-              children: [
+              children: role == 'STUDENT' ? [
                 ListTile(
                   leading: const Icon(Icons.add),
                   title: const Text('Tham gia lớp học'),
                   onTap: _registerClass,
                 ),
-              ],
+              ]
+                  :[
+            ListTile(
+            leading: const Icon(Icons.add),
+            title: const Text('Tạo lớp học'),
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pushNamed('/create-class-lecturer');
+            },
+          ),
+          ],
             ),
           ),
         );
@@ -292,27 +306,28 @@ class _HomeScreenState extends State<HomeScreenStudent> {
     setState(() {
       page = 0;
     });
-   await fetchClassList();
+    await fetchClassList();
     setState(() {
       _classList = HiveService().getData('page_content');
     });
   }
   Future<void> onLoad ()async{
-   final pageInfor =   HiveService().getData('page_info');
-   if(pageInfor['next_page'] == null){
-     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã hết lớp học')));
-   } else {
-     setState(() {
-       page ++ ;
-     });
-   await loadMoreClassList();
-     setState(() {
-       _classList = HiveService().getData('page_content');
-     });
-   }
+    final pageInfor =   HiveService().getData('page_info');
+    if(pageInfor['next_page'] == null){
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã hết lớp học')));
+    } else {
+      setState(() {
+        page ++ ;
+      });
+      await loadMoreClassList();
+      setState(() {
+        _classList = HiveService().getData('page_content');
+      });
+    }
   }
   @override
   Widget build(BuildContext context) {
+    final role = HiveService().getData('userData')['role'];
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
@@ -321,7 +336,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () {
             _scaffoldKey.currentState
-                ?.openDrawer(); // Mở Drawer khi nhấn vào menu
+                ?.openDrawer();
           },
         ),
         centerTitle: true,
@@ -340,104 +355,104 @@ class _HomeScreenState extends State<HomeScreenStudent> {
         ],
         backgroundColor: AppColors.primary,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage.isNotEmpty
-              ? Center(child: Text(_errorMessage))
-              : _classList.isEmpty
-                  ? Center(child: Text('Bạn chưa có lớp nào'))
-                  : EasyRefresh(
-                      onRefresh: onRefresh,
-                      onLoad: onLoad,
-                      child: ListView.builder(
-                        itemCount: _classList.length,
-                        itemBuilder: (context, index) {
-                          final classData =
-                          _classList[index] as Map<dynamic, dynamic>;
-                          return GestureDetector(
-                              onTap: () {
-                                Navigator.of(context, rootNavigator: true)
-                                    .pushNamed('/class-detail-student',
-                                    arguments: classData);
-                              },
-                              child: Card(
-                                elevation: 4,
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange[50],
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            classData['class_name'],
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              color: AppColors.primary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: double.infinity,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(12),
-                                          bottomRight: Radius.circular(12),
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Loại lớp: ${classData['class_type']}',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Giảng viên: ${classData['lecturer_name']}',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ));
-                        },
+      body:EasyRefresh(
+        onRefresh: onRefresh,
+        onLoad: onLoad,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMessage.isNotEmpty
+            ? Center(child: Text(_errorMessage))
+            : _classList.isEmpty
+            ? Center(child: Text('Bạn chưa có lớp nào'))
+            :  ListView.builder(
+          itemCount: _classList.length,
+          itemBuilder: (context, index) {
+            final classData =
+            _classList[index] as Map<dynamic, dynamic>;
+            return GestureDetector(
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true)
+                      .pushNamed('/class-detail-${role == 'STUDENT' ?'student':'lecture'}',
+                      arguments: classData);
+                },
+                child: Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              classData['class_name'],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                      Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              'Loại lớp: ${classData['class_type']}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Giảng viên: ${classData['lecturer_name']}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Thời gian: ${classData['start_date']} - ${classData['end_date']}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ));
+          },
+        ),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: const EdgeInsets.all(0),
@@ -488,9 +503,9 @@ class _HomeScreenState extends State<HomeScreenStudent> {
               title: const Text('Thông tin cá nhân'),
               onTap: () {
                 Navigator.of(context, rootNavigator: true).pushNamed(
-                    "/information-student",
+                    "/information",
                     arguments:
-                      HiveService().getData('userData')['id'].toString());
+                    HiveService().getData('userData')['id'].toString());
               },
             ),
             ListTile(
@@ -502,7 +517,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 Navigator.of(context, rootNavigator: true)
                     .pushNamedAndRemoveUntil(
                   "/login",
-                  (Route<dynamic> route) => false,
+                      (Route<dynamic> route) => false,
                 );
               },
             ),

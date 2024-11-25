@@ -56,14 +56,15 @@ class DetailClassScreenLec extends StatelessWidget {
 class _ClassInfoButton extends StatelessWidget {
   final String classId;
   const _ClassInfoButton({required this.classId});
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         Navigator.pushNamed(
-            context,
-            '/class-info',
-            arguments: classId,
+          context,
+          '/class-info',
+          arguments: classId,
         );
       },
       style: _buttonStyle,
@@ -71,17 +72,19 @@ class _ClassInfoButton extends StatelessWidget {
     );
   }
 }
+
 class _AsenceButton extends StatelessWidget {
   final String classId;
   const _AsenceButton({required this.classId});
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         Navigator.pushNamed(
-            context,
-            '/manager_absence_request',
-            arguments: classId,
+          context,
+          '/manager_absence_request',
+          arguments: classId,
         );
       },
       style: _buttonStyle,
@@ -122,10 +125,9 @@ class _GradeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {
-      },
+      onPressed: () {},
       style: _buttonStyle,
-      child: _getButtonContent(Icons.grade, 'Nhập điểm'),
+      child: _getButtonContent(Icons.grade, 'Chấm điểm'),
     );
   }
 }
@@ -142,8 +144,8 @@ class _AttendanceButton extends StatelessWidget {
       onPressed: () {
         Navigator.pushNamed(
           context,
-            '/attendance-screen-lecturer',
-          arguments: classData['class_id']
+          '/attendance-screen-lecturer',
+          arguments: classData['class_id'],
         );
       },
       style: _buttonStyle,
@@ -176,25 +178,23 @@ class _CreateAssignmentButton extends StatelessWidget {
 }
 
 Widget _getButtonContent(IconData icon, String text) {
-  return Expanded(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: AppColors.primary, size: 30),
-        const SizedBox(height: 8),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(icon, color: AppColors.primary, size: 30),
+      const SizedBox(height: 8),
+      Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
         ),
-      ],
-    ),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
   );
 }
 
