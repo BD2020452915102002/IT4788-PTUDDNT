@@ -31,7 +31,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   int currentPageIndex = 0;
-  String unreadNotificationsCount = '';
+  int unreadNotificationsCount = 0;
 
   @override
   void initState() {
@@ -40,16 +40,14 @@ class _NavigationState extends State<Navigation> {
   }
 
   Future<void> _initializeData() async {
-    // final countNotify = HiveService().getData('thongbao');
-    // if (countNotify == null) {
-    //   await fetchUnreadNotificationsCount();
-    // }
-    // setState(() {
-    //   unreadNotificationsCount = HiveService().getData('thongbao');
-    // });
+    final countNotify = HiveService().getData('thongbao');
+    if (countNotify == null) {
+      await fetchUnreadNotificationsCount();
+    }
     setState(() {
-      unreadNotificationsCount = '2';
+      unreadNotificationsCount = HiveService().getData('thongbao');
     });
+
   }
 
   Future<void> fetchUnreadNotificationsCount() async {
@@ -57,11 +55,9 @@ class _NavigationState extends State<Navigation> {
       final token = Token().get();
       final response = await ApiClass()
           .post('/get_unread_notification_count', {"token": token});
-      print(response);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final unreadCount = (data['data']).toString();
-        HiveService().saveData('thongbao', unreadCount);
+        await HiveService().saveData('thongbao', data['data']);
       } else {
         print('Không thể tải số thông báo chưa đọc');
       }
@@ -76,11 +72,9 @@ class _NavigationState extends State<Navigation> {
           .post('/get_unread_notification_count', {"token": Token().get()});
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final unreadCount = data['data'];
-        await HiveService().saveData('thongbao', unreadCount);
+        await HiveService().saveData('thongbao', data['data']);
         setState(() {
-          unreadNotificationsCount =
-              HiveService().getData('thongbao').toString();
+          unreadNotificationsCount = HiveService().getData('thongbao');
         });
       } else {
         throw Exception('Không thể tải số thông báo chưa đọc');
@@ -92,7 +86,7 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    Theme.of(context);
     final role = HiveService().getData('userData')['role'];
     return Scaffold(
       bottomNavigationBar: NavigationBar(
@@ -121,34 +115,34 @@ class _NavigationState extends State<Navigation> {
                   icon: Icon(Icons.assignment_outlined),
                   label: 'Bài tập',
                 ),
+                // NavigationDestination(
+                //   icon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(Icons.messenger_outline_sharp),
+                //   ),
+                //   selectedIcon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(
+                //       Icons.messenger_sharp,
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                //   label: 'Tin nhắn',
+                // ),
                 NavigationDestination(
-                  icon: Badge(
-                    label: Text('1'),
-                    child: const Icon(Icons.messenger_outline_sharp),
-                  ),
-                  selectedIcon: Badge(
-                    label: Text('1'),
-                    child: const Icon(
-                      Icons.messenger_sharp,
-                      color: Colors.white,
-                    ),
-                  ),
-                  label: 'Tin nhắn',
-                ),
-                NavigationDestination(
-                  icon: int.parse(unreadNotificationsCount) == 0
+                  icon: unreadNotificationsCount == 0
                       ? Icon(Icons.notifications_none)
                       : Badge(
-                          label: Text(unreadNotificationsCount),
+                          label: Text('$unreadNotificationsCount'),
                           child: const Icon(Icons.notifications_none),
                         ),
-                  selectedIcon: int.parse(unreadNotificationsCount) == 0
+                  selectedIcon: unreadNotificationsCount == 0
                       ? Icon(
                           Icons.notifications_sharp,
                           color: Colors.white,
                         )
                       : Badge(
-                          label: Text(unreadNotificationsCount),
+                          label: Text('$unreadNotificationsCount'),
                           child: const Icon(
                             Icons.notifications_sharp,
                             color: Colors.white,
@@ -166,34 +160,34 @@ class _NavigationState extends State<Navigation> {
                   icon: Icon(Icons.home_outlined),
                   label: 'Trang chủ',
                 ),
+                // NavigationDestination(
+                //   icon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(Icons.messenger_outline_sharp),
+                //   ),
+                //   selectedIcon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(
+                //       Icons.messenger_sharp,
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                //   label: 'Tin nhắn',
+                // ),
                 NavigationDestination(
-                  icon: Badge(
-                    label: Text('1'),
-                    child: const Icon(Icons.messenger_outline_sharp),
-                  ),
-                  selectedIcon: Badge(
-                    label: Text('1'),
-                    child: const Icon(
-                      Icons.messenger_sharp,
-                      color: Colors.white,
-                    ),
-                  ),
-                  label: 'Tin nhắn',
-                ),
-                NavigationDestination(
-                  icon: int.parse(unreadNotificationsCount) == 0
+                  icon: unreadNotificationsCount == 0
                       ? Icon(Icons.notifications_none)
                       : Badge(
-                          label: Text(unreadNotificationsCount),
+                          label: Text('$unreadNotificationsCount'),
                           child: const Icon(Icons.notifications_none),
                         ),
-                  selectedIcon: int.parse(unreadNotificationsCount) == 0
+                  selectedIcon: unreadNotificationsCount == 0
                       ? Icon(
                           Icons.notifications_sharp,
                           color: Colors.white,
                         )
                       : Badge(
-                          label: Text(unreadNotificationsCount),
+                          label: Text('$unreadNotificationsCount'),
                           child: const Icon(
                             Icons.notifications_sharp,
                             color: Colors.white,
@@ -207,12 +201,12 @@ class _NavigationState extends State<Navigation> {
           ? <Widget>[
               HomeScreen(),
               ListAssignment(),
-              ChatScreen(),
+              // ChatScreen(),
               NotifycationScreen(fetchUnreadNotificationsCount: setCount)
             ][currentPageIndex]
           : <Widget>[
               HomeScreen(),
-              ChatScreen(),
+              // ChatScreen(),
               NotifycationScreen(fetchUnreadNotificationsCount: setCount)
             ][currentPageIndex],
     );

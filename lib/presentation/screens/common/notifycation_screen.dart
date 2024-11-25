@@ -1,3 +1,4 @@
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert'; 
@@ -17,8 +18,10 @@ class NotifycationScreen extends StatefulWidget {
 
 class _NotifycationScreenState extends State<NotifycationScreen> {
   List<dynamic> notifications = [];
-  bool isLoading = true;
+  bool isLoading = false;
   final String token = Token().get();
+  int count =2;
+  int index =0;
 
   @override
   void initState() {
@@ -36,16 +39,44 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
     });
   }
   Future<void> fetchNotifications() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await ApiClass().post('/get_notifications', {
         "token": token,
-        "index": 0,
-        "count": 100
+        "index": index,
+        "count": count
       });
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
         await HiveService().saveData('danhsachthongbao', data['data']);
+      } else {
+        throw Exception('Failed to load notifications');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error: $e');
+    }
+  }
+  Future<void> fetchNotificationsXXX() async {
+    setState(() {
+      isLoading = true;
+    });
+    print('day vao$index $count');
+    try {
+      final response = await ApiClass().post('/get_notifications', {
+        "token": token,
+        "index": index,
+        "count": count
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        await HiveService().addToList('danhsachthongbao', data['data']);
       } else {
         throw Exception('Failed to load notifications');
       }
@@ -60,18 +91,13 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
     final deadlineDate = DateTime.parse(deadline);
     return DateFormat('dd-MM-yyyy, HH:mm').format(deadlineDate);
   }
-  // Hàm đánh dấu tất cả thông báo là đã đọc
   Future<void> markAllAsRead() async {
     final notificationIds = notifications.map((notification) => notification['id'].toString()).toList();
     await markAsRead(notificationIds);
   }
-
-  // Hàm đánh dấu một thông báo là đã đọc
   Future<void> markSingleAsRead(String notificationId) async {
     await markAsRead([notificationId]);
   }
-
-  // Hàm gọi API `/mark_notification_as_read`
   Future<void> markAsRead(List<String> notificationIds) async {
     try {
       final response = await ApiClass().post('/mark_notification_as_read', {
@@ -96,7 +122,32 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
       print('Error: $e');
     }
   }
+  Future<void> onRefresh ()async{
+   await HiveService().deleteData('danhsachthongbao');
+    setState(() {
+      index = 0;
+      count = 4;
+    });
+    await fetchNotifications();
+    print('duc ${HiveService().getData('danhsachthongbao')}');
+    setState(() {
+      notifications = HiveService().getData('danhsachthongbao');
+      isLoading = false;
+    });
+  }
+  Future<void> onLoad ()async{
+    await HiveService().deleteData('danhsachthongbao');
+    setState(() {
+      index = index + 2;
+      count= count + 2;
+    });
+    await fetchNotificationsXXX();
+    setState(() {
+      notifications = HiveService().getData('danhsachthongbao');
+      isLoading = false;
 
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,16 +156,11 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
         title: const Text('Thông báo', style: TextStyle(color: Colors.white),),
         centerTitle: true,
         backgroundColor: AppColors.primary ,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.mark_email_read , color: Colors.white,),
-            onPressed: () async {
-              await markAllAsRead();
-            },
-          ),
-        ],
       ),
-      body: isLoading
+      body: EasyRefresh(
+        onLoad: onLoad ,
+          onRefresh: onRefresh ,
+          child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
         itemCount: notifications.length,
@@ -134,13 +180,12 @@ class _NotifycationScreenState extends State<NotifycationScreen> {
               ),
               tileColor: notification['status'] == 'UNREAD' ? Colors.orange[50] : Colors.transparent,
               onTap: () async {
-                // Đánh dấu một thông báo là đã đọc
                 await markSingleAsRead(notification['id'].toString());
               },
             ),
           );
         },
-      )
+      ))
     );
   }
 }
