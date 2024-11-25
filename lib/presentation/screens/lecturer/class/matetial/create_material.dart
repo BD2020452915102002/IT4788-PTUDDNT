@@ -63,7 +63,7 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
           SnackBar(content: Text("Material created successfully!"))
       );
       Navigator.pop(context, true);
-      Navigator.pop(context, true);
+      // Navigator.pop(context, true);
     } else {
       print("Failed to create Material");
       print("Response body: $responseString");
@@ -90,7 +90,7 @@ class _CreateMaterialScreenState extends State<CreateMaterialScreen> {
         ),
         centerTitle: true,
         title: Text(
-          "Tạo bài tập",
+          "Tạo tài liệu tham khảo",
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: AppColors.primary,

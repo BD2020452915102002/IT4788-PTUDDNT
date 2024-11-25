@@ -97,7 +97,7 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
         );
       });
       Navigator.pop(context, true);
-      Navigator.pop(context, true);
+      // Navigator.pop(context, true);
     } else {
       print("Failed to create survey");
       final responseString = await response.stream.bytesToString();

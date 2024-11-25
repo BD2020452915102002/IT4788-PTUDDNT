@@ -77,6 +77,34 @@ class _MaterialScreenState extends State<MaterialScreen>{
       print('Đã xảy ra lỗi: $e');
     }
   }
+  Future<void> reloadData() async {
+    try {
+      // Lấy dữ liệu hiện tại từ Hive
+      final currentData = HiveService().getData('tailieu');
+      print('Current Hive Data: $currentData');
+
+      // Xóa dữ liệu cũ trong Hive
+      await HiveService().saveData('tailieu', null);
+      print('Old data removed from Hive.');
+
+      // Tải dữ liệu mới từ API
+      await fetchMaterials(widget.token, widget.classId);
+      print('New data fetched from API.');
+
+      // Lấy dữ liệu mới từ Hive
+      final newData = HiveService().getData('tailieu');
+      setState(() {
+        materials = (newData as List)
+            .map((json) => MaterialClass.fromJson(json))
+            .toList();
+        isLoading = false;
+      });
+
+      print('New data loaded to screen: ${materials.length} items.');
+    } catch (e) {
+      print('Error in reloadData: $e');
+    }
+  }
 
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
@@ -183,29 +211,34 @@ class _MaterialScreenState extends State<MaterialScreen>{
           else if (materials.isEmpty)
             Center(child: Text("No material found."))
           else
-            ListView.builder(
-              itemCount: materials.length,
-              itemBuilder: (context, index) {
-                final material = materials[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (index == 0) const SizedBox(height: 10.0),
-                    Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: ListTile(
-                        title: Text(material.title),
-                        subtitle: Text(material.description),
-                        trailing: Text(material.materialType),
-                        onTap: () {
-                          _showMaterialDetailsDialog(
-                              context, material.id.toString(), widget.token);
-                        },
-                      ),
-                    ),
-                  ],
-                );
+            RefreshIndicator(
+              onRefresh: () async {
+                  await reloadData();
               },
+              child: ListView.builder(
+                itemCount: materials.length,
+                itemBuilder: (context, index) {
+                  final material = materials[index];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (index == 0) const SizedBox(height: 10.0),
+                      Card(
+                        margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: ListTile(
+                          title: Text(material.title),
+                          subtitle: Text(material.description),
+                          trailing: Text(material.materialType),
+                          onTap: () {
+                            _showMaterialDetailsDialog(
+                                context, material.id.toString(), widget.token);
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           Positioned(
             bottom: 50.0,
@@ -223,12 +256,6 @@ class _MaterialScreenState extends State<MaterialScreen>{
                     ),
                   ),
                 );
-                if (result == true) {
-                  setState(() {
-                    isReloading = true; // Set trạng thái reload
-                    loadMater();
-                  });
-                }
               },
               child: Icon(Icons.add),
               backgroundColor: Color(0xFFC02135),
@@ -239,7 +266,6 @@ class _MaterialScreenState extends State<MaterialScreen>{
       ),
     );
   }
-
   void _showMaterialDetailsDialog(BuildContext context, String materialId, String token ) async {
     final materialDetails = await fetchMaterialDetails(materialId, token);
     print('Material details: $materialDetails');

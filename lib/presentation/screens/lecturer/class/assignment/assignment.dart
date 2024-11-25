@@ -86,6 +86,32 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     }
     return [];
   }
+  Future<void> reloadData() async {
+    try {
+      // Lấy dữ liệu hiện tại từ Hive
+      final currentData = HiveService().getData('tailieu');
+      print('Current Hive Data: $currentData');
+
+      // Xóa dữ liệu cũ trong Hive
+      await HiveService().saveData('tailieu', null);
+      print('Old data removed from Hive.');
+
+      // Tải dữ liệu mới từ API
+      await fetchAssignment(widget.token, widget.classId);
+      print('New data fetched from API.');
+
+      // Lấy dữ liệu mới từ Hive
+      final newData = HiveService().getData('tailieu');
+      setState(() {
+        assignments = (HiveService().getData('baitap') as List).map((json) => Assignment.fromJson(json)).toList();
+        isLoading = false;
+      });
+
+      print('New data loaded to screen: ${assignments.length} items.');
+    } catch (e) {
+      print('Error in reloadData: $e');
+    }
+  }
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -155,120 +181,125 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: Stack(
-        children: [
-          isLoading
-              ? Center(child: CircularProgressIndicator())
-              : assignments.isEmpty
-              ? Center(child: Text("No Assignment found."))
-              : ListView(
-            children: [
-              if (ongoingAssignments.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 16.0),
-                  child: Text(
-                    "Đang trong quá trình",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: ongoingAssignments.length,
-                  itemBuilder: (context, index) {
-                    final assignment = ongoingAssignments[index];
-                    return Card(
-                      margin: EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 8.0),
-                      child: ListTile(
-                        title: Text(assignment.title),
-                        subtitle: Text(assignment.description),
-                        trailing: Text(
-                          assignment.deadline
-                              .toLocal()
-                              .toString()
-                              .split(' ')[0],
-                        ),
-                        onTap: () {
-                          _showAssignmentDetailsDialog(assignment);
-                        },
+      body: RefreshIndicator(
+        onRefresh: reloadData, // Hàm làm mới dữ liệu
+        child: Stack(
+          children: [
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : assignments.isEmpty
+                ? Center(child: Text("No Assignment found."))
+                : ListView(
+              children: [
+                if (ongoingAssignments.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.only(
+                        top: 10.0, left: 10.0, right: 16.0),
+                    child: Text(
+                      "Đang trong quá trình",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                ),
-              ],
-              if (expiredAssignments.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 16.0),
-                  child: Text(
-                    "Đã hết hạn",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: expiredAssignments.length,
-                  itemBuilder: (context, index) {
-                    final assignment = expiredAssignments[index];
-                    return Card(
-                      margin: EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 8.0),
-                      child: ListTile(
-                        title: Text(assignment.title),
-                        subtitle: Text(assignment.description),
-                        trailing: Text(
-                          assignment.deadline
-                              .toLocal()
-                              .toString()
-                              .split(' ')[0],
-                          style: TextStyle(color: Colors.red),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: ongoingAssignments.length,
+                    itemBuilder: (context, index) {
+                      final assignment = ongoingAssignments[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: ListTile(
+                          title: Text(assignment.title),
+                          subtitle: Text(assignment.description),
+                          trailing: Text(
+                            assignment.deadline
+                                .toLocal()
+                                .toString()
+                                .split(' ')[0],
+                          ),
+                          onTap: () {
+                            _showAssignmentDetailsDialog(assignment);
+                          },
                         ),
-                        onTap: () {
-                          _showAssignmentDetailsDialog(assignment);
-                        },
+                      );
+                    },
+                  ),
+                ],
+                if (expiredAssignments.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.only(
+                        top: 10.0, left: 10.0, right: 16.0),
+                    child: Text(
+                      "Đã hết hạn",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                ),
-              ],
-            ],
-          ),
-          Positioned(
-            bottom: 50.0,
-            right: 20.0,
-            child: FloatingActionButton(
-              onPressed: () async {
-                print('Token press: ${widget.token}');
-                print('Class ID press create: ${widget.classId}');
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CreateSurveyScreen(
-                      token: widget.token,
-                      classId: widget.classId,
                     ),
                   ),
-                );
-                if (result == true) {
-                  setState(() {
-                    isReloading = true; // Set trạng thái reload
-                    loadAssign();
-                  });
-                }
-              },
-              child: Icon(Icons.add),
-              backgroundColor: Color(0xFFC02135),
-              foregroundColor: Color(0xFFF2C209),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: expiredAssignments.length,
+                    itemBuilder: (context, index) {
+                      final assignment = expiredAssignments[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: ListTile(
+                          title: Text(assignment.title),
+                          subtitle: Text(assignment.description),
+                          trailing: Text(
+                            assignment.deadline
+                                .toLocal()
+                                .toString()
+                                .split(' ')[0],
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          onTap: () {
+                            _showAssignmentDetailsDialog(assignment);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
             ),
-          ),
-        ],
+            Positioned(
+              bottom: 50.0,
+              right: 20.0,
+              child: FloatingActionButton(
+                onPressed: () async {
+                  print('Token press: ${widget.token}');
+                  print('Class ID press create: ${widget.classId}');
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateSurveyScreen(
+                        token: widget.token,
+                        classId: widget.classId,
+                      ),
+                    ),
+                  );
+                  if (result == true) {
+                    setState(() {
+                      isReloading = true; // Set trạng thái reload
+                      loadAssign();
+                    });
+                  }
+                },
+                child: Icon(Icons.add),
+                backgroundColor: Color(0xFFC02135),
+                foregroundColor: Color(0xFFF2C209),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
