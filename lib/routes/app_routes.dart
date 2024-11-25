@@ -65,7 +65,10 @@ class AppRoutes {
       return ReviewRequestScreen(classId: classId);
     },
     '/create-class-lecturer': (context) => const RegisterClassLecturer(),
-    '/attendance-screen-lecturer': (context) => const AttendanceLectureScreen(), //parameter la {classId}
+    '/attendance-screen-lecturer': (context) {
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return AttendanceLectureScreen(classId: classId);
+    }
 
   };
 }
