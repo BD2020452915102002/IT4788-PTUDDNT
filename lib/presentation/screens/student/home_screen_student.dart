@@ -490,7 +490,7 @@ class _HomeScreenState extends State<HomeScreenStudent> {
                 Navigator.of(context, rootNavigator: true).pushNamed(
                     "/information-student",
                     arguments:
-                        HiveService().getData('userData')['id'].toString());
+                      HiveService().getData('userData')['id'].toString());
               },
             ),
             ListTile(

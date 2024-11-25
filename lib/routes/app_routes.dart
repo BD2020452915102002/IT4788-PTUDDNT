@@ -17,6 +17,7 @@ import '../presentation/screens/student/class/list_assignment.dart';
 import '../presentation/screens/student/home_screen_layout_stu.dart';
 import '../presentation/screens/student/information_student_screen.dart';
 import '../presentation/screens/lecturer/absence_review/review_absence_request.dart';
+import '../presentation/screens/student/absence_request/history_absence_request.dart';
 
 
 class AppRoutes {
@@ -68,7 +69,11 @@ class AppRoutes {
     '/attendance-screen-lecturer': (context) {
       final classId = ModalRoute.of(context)!.settings.arguments as String;
       return AttendanceLectureScreen(classId: classId);
-    }
+    },
+    '/history_absence_request': (context) {
+      final classId = ModalRoute.of(context)!.settings.arguments as String;
+      return HistoryAbsenceRequest(classId: classId);
+    },
 
   };
 }
