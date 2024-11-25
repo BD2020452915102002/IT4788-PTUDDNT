@@ -146,7 +146,9 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshRequests,
-        child: Column(
+        child: _isLoading ?
+          Center(child:CircularProgressIndicator())
+          : Column(
           children: [
             Expanded(
               child: ListView.builder(
