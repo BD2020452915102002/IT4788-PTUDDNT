@@ -174,8 +174,11 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   }
 
   Future<void> _logout() async {
-   HiveService().clearBox();
-    Navigator.pushNamed(context, '/login');
+    HiveService().clearBox();
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      "/login",
+          (Route<dynamic> route) => false,
+    );
   }
 
   void showLoadingDialog(BuildContext context) {
@@ -310,6 +313,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
     return Scaffold(
       appBar: AppBar(
         title: const Text('ĐIỂM DANH'),
+        centerTitle: true,
         foregroundColor: AppColors.tertiary,
         backgroundColor: AppColors.primary,  // Applying custom primary color
         bottom: TabBar(
@@ -701,13 +705,11 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                               ),
                             ],
                           ),
-                          // Space after the header if needed
-                          SizedBox(height: 10), // Optional
-                          // Data Table for attendance
+
                           isLoading
                               ? Center(child: CircularProgressIndicator())
                               : SizedBox(
-                            height: 200,
+                            height: 350,
                             child: SingleChildScrollView(
                               child: Table(
                                 columnWidths: {
@@ -748,9 +750,24 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                                               });
                                             },
                                             items: const [
-                                              DropdownMenuItem(value: 'EXCUSED_ABSENCE', child: Text('Có Phép')),
-                                              DropdownMenuItem(value: 'UNEXCUSED_ABSENCE', child: Text('Không phép')),
-                                              DropdownMenuItem(value: 'PRESENT', child: Text('Có mặt')),
+                                              DropdownMenuItem(value: 'EXCUSED_ABSENCE', child: Text('Có Phép',
+                                                                                                      textAlign: TextAlign.center,
+                                                                                                      style: TextStyle(
+                                                                                                        fontSize: 12.0,
+                                                                                                        color: Colors.yellow
+                                                                                                      ))),
+                                              DropdownMenuItem(value: 'UNEXCUSED_ABSENCE', child: Text('Không phép',
+                                                                                                      textAlign: TextAlign.center,
+                                                                                                      style: TextStyle(
+                                                                                                        fontSize: 12.0,
+                                                                                                        color: AppColors.primary50
+                                                                                                      ))),
+                                              DropdownMenuItem(value: 'PRESENT', child: Text('Có mặt',
+                                                                                                      textAlign: TextAlign.center,
+                                                                                                      style: TextStyle(
+                                                                                                        fontSize: 12.0,
+                                                                                                        color: Colors.green
+                                                                                                      ))),
                                             ],
                                           ),
                                         ),

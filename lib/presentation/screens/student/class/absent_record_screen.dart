@@ -41,7 +41,10 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
 
   Future<void> _logout() async {
     HiveService().clearBox();
-    Navigator.pushNamed(context, '/login');
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      "/login",
+          (Route<dynamic> route) => false,
+    );
   }
 
   Future<void> fetchAttendanceRecord() async {
@@ -85,8 +88,12 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Attendance Record'),
+        title: const Text('Theo dõi điểm danh', style: TextStyle(color: AppColors.tertiary)),
+        centerTitle: true,
         backgroundColor: AppColors.primary,
+        iconTheme: const IconThemeData(
+          color: AppColors.tertiary, // Set back button color
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -98,13 +105,14 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
                     text: TextSpan(
                       text: 'Số buổi nghỉ học: ',
                       style: TextStyle(
-                        fontSize: 16.0,
+                        fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textColor, // Base text color
                       ),
                       children: [
                         TextSpan(
                           text: '${_absenceCountController.text}', // Dynamically set the absence count
+
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: _getAbsenceColor(int.tryParse(_absenceCountController.text) ?? 0),
@@ -117,15 +125,42 @@ class _AttendanceRecordScreenState extends State<AttendanceRecordScreen> {
                 Expanded(
                   child: absentDates.isEmpty
                       ? const Center(
-                          child: Text('No absent dates found.'),
+                          child: Text('Đi học đầy đủ :D.'),
                         )
                       : ListView.builder(
                           itemCount: absentDates.length,
                           itemBuilder: (context, index) {
-                            return ListTile(
-                              leading: const Icon(Icons.event_busy,
-                                  color: Colors.red),
-                              title: Text(absentDates[index]),
+                            Color boxColor = (index % 2 == 0 ? Colors.white : AppColors.tertiary);
+                            return Container(
+                              color: boxColor,
+
+                              child: ListTile(
+                                leading: const Icon(
+                                  Icons.event_busy,
+                                  color: Colors.red,
+                                ),
+                                title: RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: "Nghỉ học ngày ${index + 1}: ",
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16.0,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: absentDates[index],
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             );
                           },
                         ),

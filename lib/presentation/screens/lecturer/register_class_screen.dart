@@ -92,18 +92,27 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
     }
   }
 
+  Future<void> _logout() async {
+    HiveService().clearBox();
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      "/login",
+          (Route<dynamic> route) => false,
+    );
+  }
+
   Future<void> showError(response) async {
-    if (response.statusCode == 400) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Bad Request!")),
-      );
-    } else {
-      final data = json.decode(response.body);
-      final errorMessage = data['meta']['message'];
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+
+    final data = json.decode(response.body);
+    final errorMessage = data['meta']['message'];
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(errorMessage)));
+
+    if (data['meta']['code'] == 9998) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorMessage)));
+      await _logout();
     }
+
   }
 
   @override
@@ -130,8 +139,14 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Class Registration"),
+        title: Text("Tạo lớp học", style: TextStyle(
+          color: AppColors.tertiary
+        )),
+        centerTitle: true,
         backgroundColor: AppColors.primary,
+        iconTheme: const IconThemeData(
+          color: AppColors.tertiary,
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -142,27 +157,27 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
               TextFormField(
                 controller: _classIdController,
                 decoration: InputDecoration(
-                  labelText: "Class ID",
+                  labelText: "ID lớp học",
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                value!.isEmpty ? 'Class ID is required' : null,
+                value!.isEmpty ? 'ID lớp học không thể để trống' : null,
               ),
               SizedBox(height: 16),
               TextFormField(
                 controller: _classNameController,
                 decoration: InputDecoration(
-                  labelText: "Class Name",
+                  labelText: "Tên lớp học",
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                value!.isEmpty ? 'Class Name is required' : null,
+                value!.isEmpty ? 'Tên lóp học không thể để trống' : null,
               ),
               SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _classType,
                 decoration: InputDecoration(
-                  labelText: "Class Type",
+                  labelText: "Loại lớp",
                   border: OutlineInputBorder(),
                 ),
                 items: _classTypes
@@ -173,42 +188,42 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
                     .toList(),
                 onChanged: (value) => setState(() => _classType = value),
                 validator: (value) =>
-                value == null ? 'Please select class type' : null,
+                value == null ? 'Hãy chọn loại lớp học' : null,
               ),
               SizedBox(height: 16),
               TextFormField(
                 controller: _startDateController,
                 decoration: InputDecoration(
-                  labelText: "Start Date (YYYY-MM-DD)",
+                  labelText: "Ngày bắt đầu (YYYY-MM-DD)",
                   border: OutlineInputBorder(),
                   suffixIcon: Icon(Icons.calendar_today),
                 ),
                 readOnly: true, // Prevent manual text entry
                 onTap: () => _pickDate(_startDateController), // Trigger date picker
-                validator: (value) => value!.isEmpty ? 'Start Date is required' : null,
+                validator: (value) => value!.isEmpty ? 'Không thể để trống' : null,
               ),
               SizedBox(height: 16),
               TextFormField(
                 controller: _endDateController,
                 decoration: InputDecoration(
-                  labelText: "End Date (YYYY-MM-DD)",
+                  labelText: "Ngày kết thúc (YYYY-MM-DD)",
                   border: OutlineInputBorder(),
                   suffixIcon: Icon(Icons.calendar_today),
                 ),
                 readOnly: true, // Prevent manual text entry
                 onTap: () => _pickDate(_endDateController), // Trigger date picker
-                validator: (value) => value!.isEmpty ? 'End Date is required' : null,
+                validator: (value) => value!.isEmpty ? 'Không thể để trống' : null,
               ),
               SizedBox(height: 16),
               TextFormField(
                 controller: _maxStudentAmountController,
                 decoration: InputDecoration(
-                  labelText: "Max Student Amount",
+                  labelText: "Số lượng sinh viên",
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) =>
-                value!.isEmpty ? 'Max Student Amount is required' : null,
+                value!.isEmpty ? 'Số lượng sinh viên không thể để trống' : null,
               ),
               SizedBox(height: 32),
               Row(
@@ -219,14 +234,19 @@ class _RegisterClassLecturerState extends State<RegisterClassLecturer> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.buttonColor,
                       ),
-                      child: Text("Submit"),
+                      child: Text("Tạo lớp"),
                     ),
                   ),
                   SizedBox(width: 16),
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _clearFields,
-                      child: Text("Clear Fields"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textColor,
+                        side: BorderSide(color: AppColors.primary),
+                        backgroundColor: AppColors.secondary,
+                      ),
+                      child: const Text("Xóa toàn bộ"),
                     ),
                   ),
                 ],
