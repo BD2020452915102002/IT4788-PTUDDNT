@@ -20,20 +20,23 @@ class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
   int totalPages = 0;
   List absenceRequests = [];
   bool isLoading = false;
+  late String _classId;
 
   @override
   void initState() {
     super.initState();
+    _classId = widget.classId;
     initData();
   }
 
   Future<void> initData() async {
-    final requestData = HiveService().getData('requestData-${currentPage}');
-    if (requestData == null) {
+    final requestData = HiveService().getData('requestData-${currentPage}-${_classId}');
+    final requestPageInfo = HiveService().getData('requestData_page_info-${_classId}');
+    if (requestData == null || requestPageInfo == null) {
      await fetchAbsenceRequests();
     }
-    final ttt = HiveService().getData('requestData_page_info')['total_page'];
-    final dddd = HiveService().getData('requestData');
+    final ttt = HiveService().getData('requestData_page_info-${_classId}')['total_page'];
+    final dddd = HiveService().getData('requestData-${currentPage}-${_classId}');
     setState(() {
       absenceRequests = dddd;
       isLoading = false;
@@ -45,7 +48,7 @@ class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
     setState(() {
       isLoading = true;
     });
-    await HiveService().deleteData('requestData_page_info');
+    await HiveService().deleteData('requestData_page_info-${_classId}');
 
     final response = await http.post(
       Uri.parse(
@@ -64,8 +67,8 @@ class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes))['data'];
-      await HiveService().saveData('requestData-${currentPage}', data['page_content'] as List);
-      await HiveService().saveData('requestData_page_info', data['page_info']);
+      await HiveService().saveData('requestData-${currentPage}-${_classId}', data['page_content'] as List);
+      await HiveService().saveData('requestData_page_info-${_classId}', data['page_info']);
     } else {
       throw Exception("Failed to load absence requests");
     }
@@ -90,14 +93,14 @@ class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
 
   Future<void> _refresh() async {
     for (int i =0; i < totalPages; i++) {
-      await HiveService().deleteData('requestData-${i}');
+      await HiveService().deleteData('requestData-${i}-${_classId}');
     }
     setState(() {
       currentPage = 0;
     });
     await fetchAbsenceRequests(isRefresh: true);
     setState(() {
-      absenceRequests = HiveService().getData('requestData');
+      absenceRequests = HiveService().getData('requestData-${currentPage}-${_classId}');
     });
   }
 
@@ -255,14 +258,14 @@ class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
                       setState(() {
                         currentPage--;
                       });
-                      final aaa  = HiveService().getData('requestData-${currentPage}');
+                      final aaa  = HiveService().getData('requestData-${currentPage}-${_classId}');
                       if(aaa == null) {
                         await fetchAbsenceRequests();
 
                       }
                       setState(() {
                         absenceRequests =
-                            HiveService().getData('requestData-${currentPage}');
+                            HiveService().getData('requestData-${currentPage}-${_classId}');
                       });
                     }
                         : null,
@@ -275,14 +278,14 @@ class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
                       setState(() {
                         currentPage++;
                       });
-                      final aaa  = HiveService().getData('requestData-${currentPage}');
+                      final aaa  = HiveService().getData('requestData-${currentPage}-${_classId}');
                       if(aaa == null) {
                         await fetchAbsenceRequests();
 
                       }
                       setState(() {
                         absenceRequests =
-                            HiveService().getData('requestData-${currentPage}');
+                            HiveService().getData('requestData-${currentPage}-${_classId}');
                       });
                     }
                         : null,
