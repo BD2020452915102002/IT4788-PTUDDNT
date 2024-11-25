@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:convert';
+//import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
@@ -147,99 +147,101 @@ class _EditAssignmnetScreenState extends State<EditAssignmentScreen> {
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Căn trái các label
-          children: [
-            // Tiêu đề Title
-            Text(
-              'Title:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Căn trái các label
+            children: [
+              // Tiêu đề Title
+              Text(
+                'Title:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Tiêu đề Description
-            Text(
-              'Description:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            TextField(
-              controller: descriptionController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Tiêu đề Deadline
-            Text(
-              'Deadline:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            TextField(
-              controller: deadlineController,
-              readOnly: true,
-              onTap: () => _selectDateTime(context),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
-              ),
-            ),
-            const SizedBox(height: 32), // Tạo khoảng cách trước nút
-
-            // Các nút bấm được căn giữa
-            Center(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFC02135),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: selectFile,
-                    child: Text(
-                      selectedFile == null
-                          ? 'Choose File'
-                          : 'File: ${selectedFile!.path.split('/').last}',
-                    ),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFC02135),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: saveChanges,
-                    child: Text(
-                      'Save',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // Tiêu đề Description
+              Text(
+                'Description:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              TextField(
+                controller: descriptionController,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Tiêu đề Deadline
+              Text(
+                'Deadline:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              TextField(
+                controller: deadlineController,
+                readOnly: true,
+                onTap: () => _selectDateTime(context),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32), // Tạo khoảng cách trước nút
+
+              // Các nút bấm được căn giữa
+              Center(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFC02135),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: selectFile,
+                      child: Text(
+                        selectedFile == null
+                            ? 'Choose File'
+                            : 'File: ${selectedFile!.path.split('/').last}',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFC02135),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: saveChanges,
+                      child: Text(
+                        'Save',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

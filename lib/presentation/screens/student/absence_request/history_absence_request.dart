@@ -7,13 +7,10 @@ import 'package:ptuddnt/core/utils/hive.dart';
 
 class HistoryAbsenceRequest extends StatefulWidget {
   final String classId;
-
   const HistoryAbsenceRequest({super.key, required this.classId});
-
   @override
   HistoryRequestScreenState createState() => HistoryRequestScreenState();
 }
-
 class HistoryRequestScreenState extends State<HistoryAbsenceRequest> {
   int currentPage = 0;
   int pageSize = 4;

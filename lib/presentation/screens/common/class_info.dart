@@ -367,9 +367,18 @@ class _ClassInfoState extends State<ClassInfo> {
                       startDate: selectedStartDate,
                       endDate: selectedEndDate,
                     );
-                    Navigator.pop(context); // Đóng dialog sau khi cập nhật
+                    Navigator.pop(context);
                   },
-                  child: const Text('Lưu'),
+                  child: isLoadingBtn2
+                    ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                    : const Text('Lưu'),
                 ),
               ],
             );

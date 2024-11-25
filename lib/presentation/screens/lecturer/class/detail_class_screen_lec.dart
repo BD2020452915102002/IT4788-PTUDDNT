@@ -12,7 +12,6 @@ class DetailClassScreenLec extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String token = Token().get();
-    print('Khang ${token}');
 
     return Scaffold(
       appBar: AppBar(

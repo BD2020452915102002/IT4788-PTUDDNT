@@ -161,96 +161,98 @@ class _CreateSurveyScreenState extends State<CreateSurveyScreen> {
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Title:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Title:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Deadline:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-
-            ),
-            TextField(
-              controller: deadlineController,
-              readOnly: true,
-              onTap: () => _selectDateTime(context),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Description:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            TextField(
-              controller: descriptionController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), // Giảm bo góc
-                ),
-              ),
-            ),
-            const SizedBox(height: 32), // Tạo khoảng cách trước nút bấm
-            Center(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFC02135),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: pickFile,
-                    child: Text(selectedFile != null ? "File Selected" : "Pick File"),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
                   ),
-                  if (selectedFileName != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        'File đã chọn: $selectedFileName',
-                        style: TextStyle(fontSize: 16, color: Colors.blue),
-                      ),
-                    ),
-                  const SizedBox(height: 20), // Tạo khoảng cách giữa các nút
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFC02135),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: createSurvey,
-                    child: Text("Create Survey"),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Deadline:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              TextField(
+                controller: deadlineController,
+                readOnly: true,
+                onTap: () => _selectDateTime(context),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Description:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              TextField(
+                controller: descriptionController,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10), // Giảm bo góc
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32), // Tạo khoảng cách trước nút bấm
+              Center(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFC02135),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: pickFile,
+                      child: Text(selectedFile != null ? "File Selected" : "Pick File"),
+                    ),
+                    if (selectedFileName != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'File đã chọn: $selectedFileName',
+                          style: TextStyle(fontSize: 16, color: Colors.blue),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFC02135),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      onPressed: createSurvey,
+                      child: const Text("Create Survey"),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+
     );
   }
 }

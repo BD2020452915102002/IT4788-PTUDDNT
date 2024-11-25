@@ -125,6 +125,19 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
     }
   }
 
+  Color getStatusColor(String status) {
+    switch (status) {
+      case 'ACCEPTED':
+        return Colors.green;
+      case 'PENDING':
+        return Colors.orange;
+      case 'REJECTED':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -176,7 +189,7 @@ class ReviewRequestScreenState extends State<ReviewRequestScreen> {
                         request['status'],
                         style: TextStyle(
                           fontWeight: isPending ? FontWeight.bold : FontWeight.normal,
-                          color: isPending ? Colors.orange : Colors.black,
+                          color: getStatusColor(request['status']),
                         ),
                       ),
                       onTap: () => _showRequestDetails(request),
