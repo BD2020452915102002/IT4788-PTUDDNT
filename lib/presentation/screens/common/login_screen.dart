@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:ptuddnt/core/utils/device_id.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/notification.dart';
 import 'package:ptuddnt/core/utils/token.dart';
@@ -20,6 +22,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String _errorMessage = '';
 
+  Future<String?> getFcmToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    return token;
+  }
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -30,11 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = '';
     });
     await HiveService().clearBox();
+    String deviceId = await getDeviceId();
+    String? fcmToken = await getFcmToken();
+    print('duc 123 :$deviceId :$fcmToken');
     final response = await ApiAuthen().post('/login', {
       'email': _emailController.text,
       'password': _passwordController.text,
-      'device_id': 1,
-      'fcm_token': null,
+      'device_id': deviceId,
+      'fcm_token': fcmToken,
     });
 
     setState(() {
