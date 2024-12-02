@@ -16,7 +16,7 @@ class MaterialScreen extends StatefulWidget {
   final String token;
   final String classId;
 
-const MaterialScreen({Key? key, required this.token, required this.classId}) : super(key: key);
+  const MaterialScreen({Key? key, required this.token, required this.classId}) : super(key: key);
   @override
   State<MaterialScreen> createState() => _MaterialScreenState();
 }
@@ -36,13 +36,23 @@ class _MaterialScreenState extends State<MaterialScreen>{
     if ( tl == null ){
       await loadMater();
     }
+    // setState(() {
+    //   materials = (HiveService().getData('tailieu') as List)
+    //       .where((json) => json['class_id'] == widget.classId) // Chỉ lấy dữ liệu đúng classId
+    //       .map((json) => MaterialClass.fromJson(json))
+    //       .toList();
+    //   isLoading = false;
+    // });
     setState(() {
-      materials = (HiveService().getData('tailieu') as List).map((json) => MaterialClass.fromJson(json)).toList();
+      materials = (HiveService().getData('tailieu') as List)
+          .where((json) => json['class_id'] == widget.classId)
+          .map((json) => MaterialClass.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
       isLoading = false;
     });
   }
   Future<void> loadMater() async {
-     await fetchMaterials(widget.token, widget.classId );
+    await fetchMaterials(widget.token, widget.classId );
   }
   Future<void> fetchMaterials(String token, String classId) async {
     setState(() {
@@ -95,7 +105,8 @@ class _MaterialScreenState extends State<MaterialScreen>{
       final newData = HiveService().getData('tailieu');
       setState(() {
         materials = (newData as List)
-            .map((json) => MaterialClass.fromJson(json))
+            .where((json) => json['class_id'] == widget.classId)
+            .map((json) => MaterialClass.fromJson(Map<String, dynamic>.from(json)))
             .toList();
         isLoading = false;
       });
@@ -213,7 +224,7 @@ class _MaterialScreenState extends State<MaterialScreen>{
           else
             RefreshIndicator(
               onRefresh: () async {
-                  await reloadData();
+                await reloadData();
               },
               child: ListView.builder(
                 itemCount: materials.length,
