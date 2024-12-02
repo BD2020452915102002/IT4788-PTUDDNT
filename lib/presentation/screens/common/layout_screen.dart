@@ -115,20 +115,20 @@ class _NavigationState extends State<Navigation> {
                   icon: Icon(Icons.assignment_outlined),
                   label: 'Bài tập',
                 ),
-                NavigationDestination(
-                  icon: Badge(
-                    label: Text('1'),
-                    child: const Icon(Icons.messenger_outline_sharp),
-                  ),
-                  selectedIcon: Badge(
-                    label: Text('1'),
-                    child: const Icon(
-                      Icons.messenger_sharp,
-                      color: Colors.white,
-                    ),
-                  ),
-                  label: 'Tin nhắn',
-                ),
+                // NavigationDestination(
+                //   icon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(Icons.messenger_outline_sharp),
+                //   ),
+                //   selectedIcon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(
+                //       Icons.messenger_sharp,
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                //   label: 'Tin nhắn',
+                // ),
                 NavigationDestination(
                   icon: unreadNotificationsCount == 0
                       ? Icon(Icons.notifications_none)
@@ -160,20 +160,20 @@ class _NavigationState extends State<Navigation> {
                   icon: Icon(Icons.home_outlined),
                   label: 'Trang chủ',
                 ),
-                NavigationDestination(
-                  icon: Badge(
-                    label: Text('1'),
-                    child: const Icon(Icons.messenger_outline_sharp),
-                  ),
-                  selectedIcon: Badge(
-                    label: Text('1'),
-                    child: const Icon(
-                      Icons.messenger_sharp,
-                      color: Colors.white,
-                    ),
-                  ),
-                  label: 'Tin nhắn',
-                ),
+                // NavigationDestination(
+                //   icon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(Icons.messenger_outline_sharp),
+                //   ),
+                //   selectedIcon: Badge(
+                //     label: Text('1'),
+                //     child: const Icon(
+                //       Icons.messenger_sharp,
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                //   label: 'Tin nhắn',
+                // ),
                 NavigationDestination(
                   icon: unreadNotificationsCount == 0
                       ? Icon(Icons.notifications_none)
@@ -201,12 +201,12 @@ class _NavigationState extends State<Navigation> {
           ? <Widget>[
               HomeScreen(fetchUnreadNotificationsCount:setCount),
               ListAssignment(),
-              ChatScreen(),
+              // ChatScreen(),
               NotifycationScreen(fetchUnreadNotificationsCount: setCount)
             ][currentPageIndex]
           : <Widget>[
               HomeScreen(fetchUnreadNotificationsCount:setCount),
-              ChatScreen(),
+              // ChatScreen(),
               NotifycationScreen(fetchUnreadNotificationsCount: setCount)
             ][currentPageIndex],
     );
