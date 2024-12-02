@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ptuddnt/core/utils/hive.dart';
 import 'package:ptuddnt/core/utils/token.dart';
-import 'package:stomp_dart_client/stomp_dart_client.dart';
+// import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -12,7 +12,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  StompClient? stompClient;
+  // StompClient? stompClient;
   List<Map<String, String>> messages = [];
   final userId = HiveService().getData('userData')['id'];
   final token = Token().get();
@@ -21,60 +21,60 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _connectWebSocket();
+    // _connectWebSocket();
   }
 
-  void _connectWebSocket() {
-    print('duc111$userId  :   $token');
-    stompClient = StompClient(
-      config: StompConfig(
-        url: 'ws://157.66.24.126:8080/ws',
-        onConnect: _onConnect,
-        onWebSocketError: (error) => print('WebSocket error: $error'),
-      ),
-    );
-    stompClient!.activate();
-  }
+  // void _connectWebSocket() {
+  //   print('duc111$userId  :   $token');
+  //   stompClient = StompClient(
+  //     config: StompConfig(
+  //       url: 'ws://157.66.24.126:8080/ws',
+  //       onConnect: _onConnect,
+  //       onWebSocketError: (error) => print('WebSocket error: $error'),
+  //     ),
+  //   );
+  //   stompClient!.activate();
+  // }
 
-  void _onConnect(StompFrame frame) {
-    print('userId duc $userId');
-    stompClient!.subscribe(
-      destination: '/user/$userId/inbox',
-      callback: (frame) {
-        final body = jsonDecode(frame.body!);
-        print('body $body');
-        setState(() {
-          messages.add({
-            'sender': body['sender']['id'].toString(),
-            'content': body['content'],
-          });
-        });
-      },
-    );
-  }
+  // void _onConnect(StompFrame frame) {
+  //   print('userId duc $userId');
+  //   stompClient!.subscribe(
+  //     destination: '/user/$userId/inbox',
+  //     callback: (frame) {
+  //       final body = jsonDecode(frame.body!);
+  //       print('body $body');
+  //       setState(() {
+  //         messages.add({
+  //           'sender': body['sender']['id'].toString(),
+  //           'content': body['content'],
+  //         });
+  //       });
+  //     },
+  //   );
+  // }
 
-  void _sendMessage() {
-    final content = _contentController.text;
-    stompClient!.send(
-      destination: '/chat/message',
-      body: jsonEncode({
-        'receiver': {'id': 1}, // Change this as per requirement
-        'content': content,
-        'sender': userId,
-        'token': token,
-      }),
-    );
-    setState(() {
-      messages.add({'sender': 'You', 'content': content});
-    });
-    _contentController.clear();
-  }
+  // void _sendMessage() {
+  //   final content = _contentController.text;
+  //   stompClient!.send(
+  //     destination: '/chat/message',
+  //     body: jsonEncode({
+  //       'receiver': {'id': 1}, // Change this as per requirement
+  //       'content': content,
+  //       'sender': userId,
+  //       'token': token,
+  //     }),
+  //   );
+  //   setState(() {
+  //     messages.add({'sender': 'You', 'content': content});
+  //   });
+  //   _contentController.clear();
+  // }
 
-  @override
-  void dispose() {
-    stompClient?.deactivate();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   stompClient?.deactivate();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +108,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Row(
               children: [
                 Expanded(child: TextField(controller: _contentController, decoration: InputDecoration(hintText: 'Type a message'))),
-                IconButton(icon: Icon(Icons.send), onPressed: _sendMessage),
+                // IconButton(icon: Icon(Icons.send), onPressed: _sendMessage),
               ],
             ),
           ),

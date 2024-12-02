@@ -49,8 +49,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   easy_refresh: ^3.4.0
   device_info_plus: ^11.1.1
-  web_socket_channel: ^3.0.1
-  stomp_dart_client: ^2.1.0
 
 dev_dependencies:
   flutter_test:
