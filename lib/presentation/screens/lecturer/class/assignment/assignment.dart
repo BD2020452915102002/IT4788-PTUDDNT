@@ -44,7 +44,9 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       await loadAssign();
     }
     setState(() {
-      assignments = (HiveService().getData('baitap') as List).map((json) => Assignment.fromJson(json)).toList();
+      assignments = (HiveService().getData('baitap') as List)
+          .where((json) => json['class_id'] == widget.classId)
+          .map((json) => Assignment.fromJson(Map<String, dynamic>.from(json))).toList();
       isLoading = false;
     });
   }
@@ -103,7 +105,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       // Lấy dữ liệu mới từ Hive
       final newData = HiveService().getData('tailieu');
       setState(() {
-        assignments = (HiveService().getData('baitap') as List).map((json) => Assignment.fromJson(json)).toList();
+        assignments = (HiveService().getData('baitap') as List).map((json) => Assignment.fromJson(Map<String, dynamic>.from(json))).toList();
         isLoading = false;
       });
 
