@@ -23,6 +23,8 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   String _classId = '';
   final TextEditingController _dateController = TextEditingController();
 
+  bool _isTaken = false;
+
   int? sortColumnIndex1;
   bool sortAscending1 = true;
   int? sortColumnIndex2;
@@ -51,15 +53,16 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
+    _isTaken = false;
     _classId = widget.classId;
     getToken().then((_) {
       setState(() {
       _date = formatDate(DateTime.now());
         _dateNow = _date;
         _dateList = List<String>.from(Set<String>.from(_dateList));
-        fetchStudents();
         fetchAttendanceDate();
+        fetchStudents();
+
       });
     });
   }
@@ -111,6 +114,11 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
         setState(() {
           _dateList = List<String>.from(responseData["data"]);
         });
+        if(_dateList.contains(_dateNow)){
+          setState(() {
+            _isTaken = true;
+          });
+        }
       }
       setState(() {
         isLoading2 = false;
@@ -258,6 +266,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
       );
 
       setState((){
+        _isTaken = true;
         isLoading = false;
         absenceList.clear();
       });
@@ -497,7 +506,7 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                       height: table1Height,
                       width: MediaQuery.of(context).size.width,
                       child: isLoading ? Center(child: CircularProgressIndicator())
-                          :
+                          : !_isTaken ?
                           Expanded(
                             child: SingleChildScrollView(
                             child: Table(
@@ -545,7 +554,11 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                             ),
                           ),
 
-                          ),
+                          ) : Expanded(
+                        child: Center(
+                          child: Text("Hôm nay đã điểm danh!")
+                        )
+                      ),
 
                     ),
                     SizedBox(height: 20),
@@ -583,21 +596,26 @@ class _AttendanceLecturerState extends State<AttendanceLectureScreen> with Ticke
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,  // Align the button to the right
                       children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            showLoadingDialog(context);
-                            await submitAbsences();
-                            Navigator.of(context).pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.buttonColor,  // Button background color
-                            foregroundColor: Colors.white,  // Text color for the button
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),  // Set the border radius here
-                            ),
-                          ),
-                          child: Text('Gửi'),
+                    ElevatedButton(
+                      onPressed: _isTaken
+                      ? null  // Disable the button if _isTaken is true
+                          : () async {
+                        showLoadingDialog(context);
+                        await submitAbsences();
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isTaken
+                            ? AppColors.buttonColor.withOpacity(0.5)  // Dimmed color when disabled
+                            : AppColors.buttonColor,  // Regular button color when enabled
+                        foregroundColor: Colors.white,  // Text color for the button
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),  // Set the border radius here
                         ),
+                      ),
+                      child: Text('Gửi'),
+                    ),
+
                         SizedBox(width: 8.0),
                       ],
                     )
