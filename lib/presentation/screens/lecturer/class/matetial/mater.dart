@@ -44,8 +44,7 @@ class _MaterialScreenState extends State<MaterialScreen>{
     //   isLoading = false;
     // });
     setState(() {
-      materials = (HiveService().getData('tailieu') as List)
-          .where((json) => json['class_id'] == widget.classId)
+      materials = (HiveService().getData('tailieu${widget.classId}') as List)
           .map((json) => MaterialClass.fromJson(Map<String, dynamic>.from(json)))
           .toList();
       isLoading = false;
@@ -78,7 +77,7 @@ class _MaterialScreenState extends State<MaterialScreen>{
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (jsonResponse != null && jsonResponse['data'] != null) {
-          await HiveService().saveData('tailieu', jsonResponse['data']);
+          await HiveService().saveData('tailieu${widget.classId}', jsonResponse['data']);
         }
       } else {
         throw Exception('Lỗi khi lấy dữ liệu: ${response.statusCode}');
@@ -90,11 +89,11 @@ class _MaterialScreenState extends State<MaterialScreen>{
   Future<void> reloadData() async {
     try {
       // Lấy dữ liệu hiện tại từ Hive
-      final currentData = HiveService().getData('tailieu');
+      final currentData = HiveService().getData('tailieu${widget.classId}');
       print('Current Hive Data: $currentData');
 
       // Xóa dữ liệu cũ trong Hive
-      await HiveService().saveData('tailieu', null);
+      await HiveService().saveData('tailieu${widget.classId}', null);
       print('Old data removed from Hive.');
 
       // Tải dữ liệu mới từ API
@@ -102,10 +101,9 @@ class _MaterialScreenState extends State<MaterialScreen>{
       print('New data fetched from API.');
 
       // Lấy dữ liệu mới từ Hive
-      final newData = HiveService().getData('tailieu');
+      final newData = HiveService().getData('tailieu${widget.classId}');
       setState(() {
         materials = (newData as List)
-            .where((json) => json['class_id'] == widget.classId)
             .map((json) => MaterialClass.fromJson(Map<String, dynamic>.from(json)))
             .toList();
         isLoading = false;

@@ -39,13 +39,12 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     }).toList();
   }
   Future<void> _init () async {
-    final bt = HiveService().getData('baitap');
+    final bt = HiveService().getData('baitap${widget.classId}');
     if ( bt == null ){
       await loadAssign();
     }
     setState(() {
-      assignments = (HiveService().getData('baitap') as List)
-          .where((json) => json['class_id'] == widget.classId)
+      assignments = (HiveService().getData('baitap${widget.classId}') as List)
           .map((json) => Assignment.fromJson(Map<String, dynamic>.from(json))).toList();
       isLoading = false;
     });
@@ -78,7 +77,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
         final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
 
         if (jsonResponse != null && jsonResponse['data'] != null) {
-          await HiveService().saveData('baitap', jsonResponse['data']);
+          await HiveService().saveData('baitap${widget.classId}', jsonResponse['data']);
         }
       } else {
         throw Exception('Failed to fetch assignments: ${response.statusCode} - ${response.body}');
@@ -103,9 +102,9 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
       print('New data fetched from API.');
 
       // Lấy dữ liệu mới từ Hive
-      final newData = HiveService().getData('tailieu');
+      final newData = HiveService().getData('baitap${widget.classId}');
       setState(() {
-        assignments = (HiveService().getData('baitap') as List).map((json) => Assignment.fromJson(Map<String, dynamic>.from(json))).toList();
+        assignments = (HiveService().getData('baitap${widget.classId}') as List).map((json) => Assignment.fromJson(Map<String, dynamic>.from(json))).toList();
         isLoading = false;
       });
 

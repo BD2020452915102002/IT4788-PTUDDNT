@@ -42,7 +42,7 @@ class DetailClassScreenLec extends StatelessWidget {
             _ClassInfoButton(classId: classData['class_id']),
             _AsenceButton(classId: classData['class_id']),
             _ViewMaterialsButton(classData: classData, token: token),
-            _GradeButton(classData: classData, token: token),
+            // _GradeButton(classData: classData, token: token),
             _AttendanceButton(classData: classData, token: token),
             _CreateAssignmentButton(classData: classData, token: token),
           ],

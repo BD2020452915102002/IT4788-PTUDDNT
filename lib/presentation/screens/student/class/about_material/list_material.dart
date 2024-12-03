@@ -138,11 +138,11 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
   Future<void> reloadData() async {
     try {
       // Lấy dữ liệu hiện tại từ Hive
-      final currentData = HiveService().getData('tailieu');
+      final currentData = HiveService().getData('tailieu${widget.classId}');
       print('Current Hive Data: $currentData');
 
       // Xóa dữ liệu cũ trong Hive
-      await HiveService().saveData('tailieu', null);
+      await HiveService().saveData('tailieu${widget.classId}', null);
       print('Old data removed from Hive.');
 
       // Tải dữ liệu mới từ API
@@ -150,7 +150,7 @@ class _ListMaterialScreenState extends State<ListMaterialScreen>{
       print('New data fetched from API.');
 
       // Lấy dữ liệu mới từ Hive
-      final newData = HiveService().getData('tailieu');
+      final newData = HiveService().getData('tailieu${widget.classId}');
       setState(() {
         materials = (newData as List)
             .map((json) => MaterialClass.fromJson(json))
